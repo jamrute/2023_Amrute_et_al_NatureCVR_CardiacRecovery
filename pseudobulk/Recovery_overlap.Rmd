@@ -1,0 +1,1079 @@
+```{r}
+library(Seurat)
+library(ggplot2)
+library(patchwork)
+library(ggpubr)
+library(dplyr)
+library(Seurat)
+library(patchwork)
+library(sctransform)
+library(ggplot2)
+library(pheatmap)
+library(Seurat)
+library(ggplot2)
+library(Matrix)
+library(RColorBrewer)
+library(dplyr)
+library(scales)
+library(data.table)
+library(stats)
+library("Nebulosa")
+library(tidyverse)
+library(hrbrthemes)
+library(viridis)
+library(magrittr)
+library(dplyr)
+library(VennDiagram)
+```
+
+# Donor vs Rpost
+```{r}
+Adipocyte <- read_delim("./DE_analysis/Rpost_Donor/Adipocyte_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Adipocyte$cell <- "Adipocyte"
+Adipocyte$sigpvalue <- ifelse(Adipocyte$padj < 0.05, "p < 0.05","p > 0.05")
+Adipocyte$sig <- ifelse(Adipocyte$padj < 0.05 & abs(Adipocyte$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Cardiomyocyte <- read_delim("./DE_analysis/Rpost_Donor/Cardiomyocyte_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Cardiomyocyte$cell <- "Cardiomyocyte"
+Cardiomyocyte$sigpvalue <- ifelse(Cardiomyocyte$padj < 0.05, "p < 0.05","p > 0.05")
+Cardiomyocyte$sig <- ifelse(Cardiomyocyte$padj < 0.05 & abs(Cardiomyocyte$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Endocardium <- read_delim("./DE_analysis/Rpost_Donor/Endocardium_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Endocardium$cell <- "Endocardium"
+Endocardium$sigpvalue <- ifelse(Endocardium$padj < 0.05, "p < 0.05","p > 0.05")
+Endocardium$sig <- ifelse(Endocardium$padj < 0.05 & abs(Endocardium$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Endothelium <- read_delim("./DE_analysis/Rpost_Donor/Endothelium_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Endothelium$cell <- "Endothelium"
+Endothelium$sigpvalue <- ifelse(Endothelium$padj < 0.05, "p < 0.05","p > 0.05")
+Endothelium$sig <- ifelse(Endothelium$padj < 0.05 & abs(Endothelium$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Epicardium <- read_delim("./DE_analysis/Rpost_Donor/Epicardium_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Epicardium$cell <- "Epicardium"
+Epicardium$sigpvalue <- ifelse(Epicardium$padj < 0.05, "p < 0.05","p > 0.05")
+Epicardium$sig <- ifelse(Epicardium$padj < 0.05 & abs(Epicardium$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Fibroblast <- read_delim("./DE_analysis/Rpost_Donor/Fibroblast_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Fibroblast$cell <- "Fibroblast"
+Fibroblast$sigpvalue <- ifelse(Fibroblast$padj < 0.05, "p < 0.05","p > 0.05")
+Fibroblast$sig <- ifelse(Fibroblast$padj < 0.05 & abs(Fibroblast$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Glia <- read_delim("./DE_analysis/Rpost_Donor/Glia_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Glia$cell <- "Glia"
+Glia$sigpvalue <- ifelse(Glia$padj < 0.05, "p < 0.05","p > 0.05")
+Glia$sig <- ifelse(Glia$padj < 0.05 & abs(Glia$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Lymphatic <- read_delim("./DE_analysis/Rpost_Donor/Lymphatic_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Lymphatic$cell <- "Lymphatic"
+Lymphatic$sigpvalue <- ifelse(Lymphatic$padj < 0.05, "p < 0.05","p > 0.05")
+Lymphatic$sig <- ifelse(Lymphatic$padj < 0.05 & abs(Lymphatic$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Mast <- read_delim("./DE_analysis/Rpost_Donor/Mast_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Mast$cell <- "Mast"
+Mast$sigpvalue <- ifelse(Mast$padj < 0.05, "p < 0.05","p > 0.05")
+Mast$sig <- ifelse(Mast$padj < 0.05 & abs(Mast$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Myeloid <- read_delim("./DE_analysis/Rpost_Donor/Myeloid_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Myeloid$cell <- "Myeloid"
+Myeloid$sigpvalue <- ifelse(Myeloid$padj < 0.05, "p < 0.05","p > 0.05")
+Myeloid$sig <- ifelse(Myeloid$padj < 0.05 & abs(Myeloid$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Pericyte <- read_delim("./DE_analysis/Rpost_Donor/Pericyte_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Pericyte$cell <- "Pericyte"
+Pericyte$sigpvalue <- ifelse(Pericyte$padj < 0.05, "p < 0.05","p > 0.05")
+Pericyte$sig <- ifelse(Pericyte$padj < 0.05 & abs(Pericyte$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+SMC <- read_delim("./DE_analysis/Rpost_Donor/SMC_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+SMC$cell <- "SMC"
+SMC$sigpvalue <- ifelse(SMC$padj < 0.05, "p < 0.05","p > 0.05")
+SMC$sig <- ifelse(SMC$padj < 0.05 & abs(SMC$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+TNKCells <- read_delim("./DE_analysis/Rpost_Donor/TNKCells_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+TNKCells$cell <- "TNKCells"
+TNKCells$sigpvalue <- ifelse(TNKCells$padj < 0.05, "p < 0.05","p > 0.05")
+TNKCells$sig <- ifelse(TNKCells$padj < 0.05 & abs(TNKCells$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+#create data frame
+data <- data.frame(rbind(Adipocyte, Cardiomyocyte, Endocardium, Endothelium, Epicardium, Fibroblast, Glia, Lymphatic, Mast, Myeloid, Pericyte, SMC, TNKCells))
+data$cell <- factor(data$cell, levels = c("Adipocyte","Cardiomyocyte", "Endocardium", "Endothelium", "Epicardium", "Fibroblast", "Glia", "Lymphatic", "Mast", "Myeloid", "Pericyte", "SMC", "TNKCells"))
+
+data$cluster <- ifelse(data$log2FoldChange > 0, "Rpost", "Donor")
+data_rpost_donor <- filter(data, data$sig == "Significant")
+```
+
+# Donor vs HF
+```{r}
+Adipocyte <- read_delim("./DE_analysis/RNRpre_Donor/Adipocyte_R_NR_Pre_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Adipocyte$cell <- "Adipocyte"
+Adipocyte$sigpvalue <- ifelse(Adipocyte$padj < 0.05, "p < 0.05","p > 0.05")
+Adipocyte$sig <- ifelse(Adipocyte$padj < 0.05 & abs(Adipocyte$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Cardiomyocyte <- read_delim("./DE_analysis/RNRpre_Donor/Cardiomyocyte_R_NR_Pre_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Cardiomyocyte$cell <- "Cardiomyocyte"
+Cardiomyocyte$sigpvalue <- ifelse(Cardiomyocyte$padj < 0.05, "p < 0.05","p > 0.05")
+Cardiomyocyte$sig <- ifelse(Cardiomyocyte$padj < 0.05 & abs(Cardiomyocyte$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Endocardium <- read_delim("./DE_analysis/RNRpre_Donor/Endocardium_R_NR_Pre_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Endocardium$cell <- "Endocardium"
+Endocardium$sigpvalue <- ifelse(Endocardium$padj < 0.05, "p < 0.05","p > 0.05")
+Endocardium$sig <- ifelse(Endocardium$padj < 0.05 & abs(Endocardium$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Endothelium <- read_delim("./DE_analysis/RNRpre_Donor/Endothelium_R_NR_Pre_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Endothelium$cell <- "Endothelium"
+Endothelium$sigpvalue <- ifelse(Endothelium$padj < 0.05, "p < 0.05","p > 0.05")
+Endothelium$sig <- ifelse(Endothelium$padj < 0.05 & abs(Endothelium$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Epicardium <- read_delim("./DE_analysis/RNRpre_Donor/Epicardium_R_NR_Pre_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Epicardium$cell <- "Epicardium"
+Epicardium$sigpvalue <- ifelse(Epicardium$padj < 0.05, "p < 0.05","p > 0.05")
+Epicardium$sig <- ifelse(Epicardium$padj < 0.05 & abs(Epicardium$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Fibroblast <- read_delim("./DE_analysis/RNRpre_Donor/Fibroblast_R_NR_Pre_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Fibroblast$cell <- "Fibroblast"
+Fibroblast$sigpvalue <- ifelse(Fibroblast$padj < 0.05, "p < 0.05","p > 0.05")
+Fibroblast$sig <- ifelse(Fibroblast$padj < 0.05 & abs(Fibroblast$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Glia <- read_delim("./DE_analysis/RNRpre_Donor/Glia_R_NR_Pre_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Glia$cell <- "Glia"
+Glia$sigpvalue <- ifelse(Glia$padj < 0.05, "p < 0.05","p > 0.05")
+Glia$sig <- ifelse(Glia$padj < 0.05 & abs(Glia$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Lymphatic <- read_delim("./DE_analysis/RNRpre_Donor/Lymphatic_R_NR_Pre_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Lymphatic$cell <- "Lymphatic"
+Lymphatic$sigpvalue <- ifelse(Lymphatic$padj < 0.05, "p < 0.05","p > 0.05")
+Lymphatic$sig <- ifelse(Lymphatic$padj < 0.05 & abs(Lymphatic$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Mast <- read_delim("./DE_analysis/RNRpre_Donor/Mast_R_NR_Pre_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Mast$cell <- "Mast"
+Mast$sigpvalue <- ifelse(Mast$padj < 0.05, "p < 0.05","p > 0.05")
+Mast$sig <- ifelse(Mast$padj < 0.05 & abs(Mast$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Myeloid <- read_delim("./DE_analysis/RNRpre_Donor/Myeloid_R_NR_Pre_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Myeloid$cell <- "Myeloid"
+Myeloid$sigpvalue <- ifelse(Myeloid$padj < 0.05, "p < 0.05","p > 0.05")
+Myeloid$sig <- ifelse(Myeloid$padj < 0.05 & abs(Myeloid$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Pericyte <- read_delim("./DE_analysis/RNRpre_Donor/Pericyte_R_NR_Pre_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Pericyte$cell <- "Pericyte"
+Pericyte$sigpvalue <- ifelse(Pericyte$padj < 0.05, "p < 0.05","p > 0.05")
+Pericyte$sig <- ifelse(Pericyte$padj < 0.05 & abs(Pericyte$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+SMC <- read_delim("./DE_analysis/RNRpre_Donor/SMC_R_NR_Pre_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+SMC$cell <- "SMC"
+SMC$sigpvalue <- ifelse(SMC$padj < 0.05, "p < 0.05","p > 0.05")
+SMC$sig <- ifelse(SMC$padj < 0.05 & abs(SMC$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+TNKCells <- read_delim("./DE_analysis/RNRpre_Donor/TNKCells_R_NR_Pre_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+TNKCells$cell <- "TNKCells"
+TNKCells$sigpvalue <- ifelse(TNKCells$padj < 0.05, "p < 0.05","p > 0.05")
+TNKCells$sig <- ifelse(TNKCells$padj < 0.05 & abs(TNKCells$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+#create data frame
+data <- data.frame(rbind(Adipocyte, Cardiomyocyte, Endocardium, Endothelium, Epicardium, Fibroblast, Glia, Lymphatic, Mast, Myeloid, Pericyte, SMC, TNKCells))
+data$cell <- factor(data$cell, levels = c("Adipocyte","Cardiomyocyte", "Endocardium", "Endothelium", "Epicardium", "Fibroblast", "Glia", "Lymphatic", "Mast", "Myeloid", "Pericyte", "SMC", "TNKCells"))
+
+data$cluster <- ifelse(data$log2FoldChange > 0, "HF", "Donor")
+data_hf_donor <- filter(data, data$sig == "Significant")
+```
+
+# Rpost vs HF
+```{r}
+Adipocyte <- read_delim("./DE_analysis/Rpost_RNRPre/Adipocyte_RNRPre_vs_Rpost_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Adipocyte$cell <- "Adipocyte"
+Adipocyte$sigpvalue <- ifelse(Adipocyte$padj < 0.05, "p < 0.05","p > 0.05")
+Adipocyte$sig <- ifelse(Adipocyte$padj < 0.05 & abs(Adipocyte$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Cardiomyocyte <- read_delim("./DE_analysis/Rpost_RNRPre/Cardiomyocyte_RNRPre_vs_Rpost_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Cardiomyocyte$cell <- "Cardiomyocyte"
+Cardiomyocyte$sigpvalue <- ifelse(Cardiomyocyte$padj < 0.05, "p < 0.05","p > 0.05")
+Cardiomyocyte$sig <- ifelse(Cardiomyocyte$padj < 0.05 & abs(Cardiomyocyte$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Endocardium <- read_delim("./DE_analysis/Rpost_RNRPre/Endocardium_RNRPre_vs_Rpost_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Endocardium$cell <- "Endocardium"
+Endocardium$sigpvalue <- ifelse(Endocardium$padj < 0.05, "p < 0.05","p > 0.05")
+Endocardium$sig <- ifelse(Endocardium$padj < 0.05 & abs(Endocardium$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Endothelium <- read_delim("./DE_analysis/Rpost_RNRPre/Endothelium_RNRPre_vs_Rpost_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Endothelium$cell <- "Endothelium"
+Endothelium$sigpvalue <- ifelse(Endothelium$padj < 0.05, "p < 0.05","p > 0.05")
+Endothelium$sig <- ifelse(Endothelium$padj < 0.05 & abs(Endothelium$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Epicardium <- read_delim("./DE_analysis/Rpost_RNRPre/Epicardium_RNRPre_vs_Rpost_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Epicardium$cell <- "Epicardium"
+Epicardium$sigpvalue <- ifelse(Epicardium$padj < 0.05, "p < 0.05","p > 0.05")
+Epicardium$sig <- ifelse(Epicardium$padj < 0.05 & abs(Epicardium$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Fibroblast <- read_delim("./DE_analysis/Rpost_RNRPre/Fibroblast_RNRPre_vs_Rpost_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Fibroblast$cell <- "Fibroblast"
+Fibroblast$sigpvalue <- ifelse(Fibroblast$padj < 0.05, "p < 0.05","p > 0.05")
+Fibroblast$sig <- ifelse(Fibroblast$padj < 0.05 & abs(Fibroblast$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Glia <- read_delim("./DE_analysis/Rpost_RNRPre/Glia_RNRPre_vs_Rpost_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Glia$cell <- "Glia"
+Glia$sigpvalue <- ifelse(Glia$padj < 0.05, "p < 0.05","p > 0.05")
+Glia$sig <- ifelse(Glia$padj < 0.05 & abs(Glia$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Lymphatic <- read_delim("./DE_analysis/Rpost_RNRPre/Lymphatic_RNRPre_vs_Rpost_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Lymphatic$cell <- "Lymphatic"
+Lymphatic$sigpvalue <- ifelse(Lymphatic$padj < 0.05, "p < 0.05","p > 0.05")
+Lymphatic$sig <- ifelse(Lymphatic$padj < 0.05 & abs(Lymphatic$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Mast <- read_delim("./DE_analysis/Rpost_RNRPre/Mast_RNRPre_vs_Rpost_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Mast$cell <- "Mast"
+Mast$sigpvalue <- ifelse(Mast$padj < 0.05, "p < 0.05","p > 0.05")
+Mast$sig <- ifelse(Mast$padj < 0.05 & abs(Mast$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Myeloid <- read_delim("./DE_analysis/Rpost_RNRPre/Myeloid_RNRPre_vs_Rpost_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Myeloid$cell <- "Myeloid"
+Myeloid$sigpvalue <- ifelse(Myeloid$padj < 0.05, "p < 0.05","p > 0.05")
+Myeloid$sig <- ifelse(Myeloid$padj < 0.05 & abs(Myeloid$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+Pericyte <- read_delim("./DE_analysis/Rpost_RNRPre/Pericyte_RNRPre_vs_Rpost_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Pericyte$cell <- "Pericyte"
+Pericyte$sigpvalue <- ifelse(Pericyte$padj < 0.05, "p < 0.05","p > 0.05")
+Pericyte$sig <- ifelse(Pericyte$padj < 0.05 & abs(Pericyte$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+SMC <- read_delim("./DE_analysis/Rpost_RNRPre/SMC_RNRPre_vs_Rpost_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+SMC$cell <- "SMC"
+SMC$sigpvalue <- ifelse(SMC$padj < 0.05, "p < 0.05","p > 0.05")
+SMC$sig <- ifelse(SMC$padj < 0.05 & abs(SMC$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+TNKCells <- read_delim("./DE_analysis/Rpost_RNRPre/TNKCells_RNRPre_vs_Rpost_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+TNKCells$cell <- "TNKCells"
+TNKCells$sigpvalue <- ifelse(TNKCells$padj < 0.05, "p < 0.05","p > 0.05")
+TNKCells$sig <- ifelse(TNKCells$padj < 0.05 & abs(TNKCells$log2FoldChange) > 0.58, "Significant","Not Significant")
+
+#create data frame
+data <- data.frame(rbind(Adipocyte, Cardiomyocyte, Endocardium, Endothelium, Epicardium, Fibroblast, Glia, Lymphatic, Mast, Myeloid, Pericyte, SMC, TNKCells))
+data$cell <- factor(data$cell, levels = c("Adipocyte","Cardiomyocyte", "Endocardium", "Endothelium", "Epicardium", "Fibroblast", "Glia", "Lymphatic", "Mast", "Myeloid", "Pericyte", "SMC", "TNKCells"))
+
+data$cluster <- ifelse(data$log2FoldChange > 0, "HF", "Rpost")
+data_rpost_hf <- filter(data, data$sig == "Significant")
+```
+
+###### Functionalize 
+# Genes Up
+```{r}
+# Initialize lists
+cell_types <- c("Adipocyte","Cardiomyocyte", "Endocardium", "Endothelium", "Epicardium", "Fibroblast", "Glia", "Lymphatic", "Mast", "Myeloid", "Pericyte", "SMC", "TNKCells")
+direction <- c("Up","Up", "Up", "Up", "Up", "Up", "Up", "Up", "Up", "Up", "Up", "Up", "Up")
+n_genes <- c()
+```
+
+```{r}
+data_rpost_hf_RPOST <- filter(data_rpost_hf, data_rpost_hf$cluster == "Rpost")
+data_hf_donor_HF <- filter(data_hf_donor, data_hf_donor$cluster == "HF")
+data_rpost_donor_RPOST <- filter(data_rpost_donor, data_rpost_donor$cluster == "Rpost")
+```
+
+```{r}
+j <- 1
+for (i in cell_types) {
+    data_rpost_hf_RPOST_subset <- filter(data_rpost_hf_RPOST, data_rpost_hf_RPOST$cell == i)$gene
+    data_hf_donor_HF_subset <- filter(data_hf_donor_HF, data_hf_donor_HF$cell == i)$gene
+    data_rpost_donor_RPOST_subset <- filter(data_rpost_donor_RPOST, data_rpost_donor_RPOST$cell == i)$gene
+    
+    desired_genes <- setdiff(Reduce(intersect,list(data_rpost_hf_RPOST_subset, data_rpost_donor_RPOST_subset)),
+                             Reduce(intersect,list(data_rpost_hf_RPOST_subset, data_hf_donor_HF_subset, data_rpost_donor_RPOST_subset)))
+    n_desired_genes <- length(desired_genes) 
+    n_genes[j] <- n_desired_genes
+    j <- j + 1
+}
+```
+
+```{r}
+df_up <- data.frame(cell_types,direction,n_genes)
+```
+
+# Genes Down
+```{r}
+# Initialize lists
+cell_types <- c("Adipocyte","Cardiomyocyte", "Endocardium", "Endothelium", "Epicardium", "Fibroblast", "Glia", "Lymphatic", "Mast", "Myeloid", "Pericyte", "SMC", "TNKCells")
+direction <- c("Down","Down", "Down", "Down", "Down", "Down", "Down", "Down", "Down", "Down", "Down", "Down", "Down")
+n_genes <- c()
+```
+
+```{r}
+data_rpost_hf_HF <- filter(data_rpost_hf, data_rpost_hf$cluster == "HF")
+data_hf_donor_Donor <- filter(data_hf_donor, data_hf_donor$cluster == "Donor")
+data_rpost_donor_Donor <- filter(data_rpost_donor, data_rpost_donor$cluster == "Donor")
+```
+
+```{r}
+j <- 1
+for (i in cell_types) {
+    data_rpost_hf_HF_subset <- filter(data_rpost_hf_HF, data_rpost_hf_HF$cell == i)$gene
+    data_hf_donor_Donor_subset <- filter(data_hf_donor_Donor, data_hf_donor_Donor$cell == i)$gene
+    data_rpost_donor_Donor_subset <- filter(data_rpost_donor_Donor, data_rpost_donor_Donor$cell == i)$gene
+    
+    desired_genes <- setdiff(Reduce(intersect,list(data_rpost_hf_HF_subset, data_rpost_donor_Donor_subset)),
+                             Reduce(intersect,list(data_rpost_hf_HF_subset, data_hf_donor_Donor_subset, data_rpost_donor_Donor_subset)))
+    n_desired_genes <- length(desired_genes) 
+    n_genes[j] <- n_desired_genes
+    j <- j + 1
+}
+```
+
+```{r}
+df_down <- data.frame(cell_types,direction,n_genes)
+```
+
+```{r}
+df <- rbind(df_up, df_down)
+df$n_genes <- as.numeric(df$n_genes)
+df$sumGenes <- df_up$n_genes + df_down$n_genes
+df_Count <- df[order(-df$sumGenes),]
+```
+
+```{r}
+df_Count <- data.frame(df_Count)
+df_Count$cell_types <- factor(df_Count$cell_types, levels=c("Myeloid","Fibroblast","Endothelium","Endocardium","Cardiomyocyte","Pericyte","SMC","Lymphatic","Glia","TNKCells","Epicardium","Adipocyte","Mast"))
+
+ggplot(df_Count, aes(x = cell_types, y = n_genes, fill = direction)) + geom_col() + labs(x="Cell Type", y="#Genes", fill="Significance") + scale_fill_manual(values = c("dodgerblue4", "red3")) + theme_bw() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+```{r}
+write.csv(df_Count, "./Rpost_unique_genes/n_uniquegenes.csv",
+          quote = FALSE, 
+          row.names = FALSE)
+```
+
+
+# UPSET PLOT: Down
+```{r}
+listInput = list()
+j <- 1
+for (i in cell_types) {
+    data_rpost_hf_HF_subset <- filter(data_rpost_hf_HF, data_rpost_hf_HF$cell == i)$gene
+    data_hf_donor_Donor_subset <- filter(data_hf_donor_Donor, data_hf_donor_Donor$cell == i)$gene
+    data_rpost_donor_Donor_subset <- filter(data_rpost_donor_Donor, data_rpost_donor_Donor$cell == i)$gene
+    
+    desired_genes <- setdiff(Reduce(intersect,list(data_rpost_hf_HF_subset, data_rpost_donor_Donor_subset)),
+                             Reduce(intersect,list(data_rpost_hf_HF_subset, data_hf_donor_Donor_subset, data_rpost_donor_Donor_subset)))
+    listInput[[i]] = desired_genes
+}
+```
+
+```{r}
+library(UpSetR)
+upset(fromList(listInput), order.by = "freq",nsets = 5)
+```
+
+# UPSET PLOT: Up
+```{r}
+listInput = list()
+j <- 1
+for (i in cell_types) {
+    data_rpost_hf_RPOST_subset <- filter(data_rpost_hf_RPOST, data_rpost_hf_RPOST$cell == i)$gene
+    data_hf_donor_HF_subset <- filter(data_hf_donor_HF, data_hf_donor_HF$cell == i)$gene
+    data_rpost_donor_RPOST_subset <- filter(data_rpost_donor_RPOST, data_rpost_donor_RPOST$cell == i)$gene
+    
+    desired_genes <- setdiff(Reduce(intersect,list(data_rpost_hf_RPOST_subset, data_rpost_donor_RPOST_subset)),
+                             Reduce(intersect,list(data_rpost_hf_RPOST_subset, data_hf_donor_HF_subset, data_rpost_donor_RPOST_subset)))
+    
+    listInput[[i]] = desired_genes
+}
+```
+
+```{r}
+library(UpSetR)
+upset(fromList(listInput), order.by = "freq",nsets = 5)
+```
+
+##### Venn Diagrams
+```{r}
+# Prepare a palette of 3 colors with R colorbrewer:
+library(RColorBrewer)
+myCol <- brewer.pal(3, "Pastel2")
+futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
+```
+
+# Up
+```{r}
+for (i in cell_types) {
+data_rpost_hf_RPOST_subset <- filter(data_rpost_hf_RPOST, data_rpost_hf_RPOST$cell == i)$gene
+data_hf_donor_HF_subset <- filter(data_hf_donor_HF, data_hf_donor_HF$cell == i)$gene
+data_rpost_donor_RPOST_subset <- filter(data_rpost_donor_RPOST, data_rpost_donor_RPOST$cell == i)$gene
+
+# Chart
+venn.diagram(
+        x = list(data_rpost_hf_RPOST_subset, data_hf_donor_HF_subset, data_rpost_donor_RPOST_subset),
+        category.names = c("Rpost/HF" , "HF/Donor" , "Rpost/Donor"),
+        filename = paste("./Rpost_unique_genes/", i,"_up",".png",sep=""),
+        output=TRUE,
+        
+        # Output features
+        imagetype="png" ,
+        height = 480 , 
+        width = 480 , 
+        resolution = 300,
+        compression = "lzw",
+        
+        # Circles
+        lwd = 2,
+        lty = 'blank',
+        fill = myCol,
+        
+        # Numbers
+        cex = .4,
+        fontface = "plain",
+        fontfamily = "sans",
+        
+        # Set names
+        cat.cex = 0.4,
+        cat.fontface = "plain",
+        cat.default.pos = "outer",
+        cat.pos = c(-27, 27, 0),
+        cat.dist = c(0.055, 0.055, 0.03),
+        cat.fontfamily = "sans",
+        rotation = 1,
+)
+}
+```
+
+
+# Up flipped
+```{r}
+for (i in cell_types) {
+data_rpost_hf_HF_subset <- filter(data_rpost_hf_HF, data_rpost_hf_HF$cell == i)$gene
+data_hf_donor_HF_subset <- filter(data_hf_donor_HF, data_hf_donor_HF$cell == i)$gene
+data_rpost_donor_RPOST_subset <- filter(data_rpost_donor_RPOST, data_rpost_donor_RPOST$cell == i)$gene
+
+# Chart
+venn.diagram(
+        x = list(data_rpost_hf_HF_subset, data_hf_donor_HF_subset, data_rpost_donor_RPOST_subset),
+        category.names = c("HF/Rpost" , "HF/Donor" , "Rpost/Donor"),
+        filename = paste("./Rpost_unique_genes/", i,"_up",".png",sep=""),
+        output=TRUE,
+        
+        # Output features
+        imagetype="png" ,
+        height = 480 , 
+        width = 480 , 
+        resolution = 300,
+        compression = "lzw",
+        
+        # Circles
+        lwd = 2,
+        lty = 'blank',
+        fill = myCol,
+        
+        # Numbers
+        cex = .4,
+        fontface = "plain",
+        fontfamily = "sans",
+        
+        # Set names
+        cat.cex = 0.4,
+        cat.fontface = "plain",
+        cat.default.pos = "outer",
+        cat.pos = c(-27, 27, 0),
+        cat.dist = c(0.055, 0.055, 0.03),
+        cat.fontfamily = "sans",
+        rotation = 1,
+)
+}
+```
+
+# Down
+```{r}
+for (i in cell_types) {
+    data_rpost_hf_HF_subset <- filter(data_rpost_hf_HF, data_rpost_hf_HF$cell == i)$gene
+    data_hf_donor_Donor_subset <- filter(data_hf_donor_Donor, data_hf_donor_Donor$cell == i)$gene
+    data_rpost_donor_Donor_subset <- filter(data_rpost_donor_Donor, data_rpost_donor_Donor$cell == i)$gene
+
+# Chart
+venn.diagram(
+        x = list(data_rpost_hf_HF_subset, data_hf_donor_Donor_subset, data_rpost_donor_Donor_subset),
+        category.names = c("Rpost/HF" , "HF/Donor" , "Rpost/Donor"),
+        filename = paste("./Rpost_unique_genes/", i,"_down",".png",sep=""),
+        output=TRUE,
+        
+        # Output features
+        imagetype="png" ,
+        height = 480 , 
+        width = 480 , 
+        resolution = 300,
+        compression = "lzw",
+        
+        # Circles
+        lwd = 2,
+        lty = 'blank',
+        fill = myCol,
+        
+        # Numbers
+        cex = .4,
+        fontface = "plain",
+        fontfamily = "sans",
+        
+        # Set names
+        cat.cex = 0.4,
+        cat.fontface = "plain",
+        cat.default.pos = "outer",
+        cat.pos = c(-27, 27, 0),
+        cat.dist = c(0.055, 0.055, 0.03),
+        cat.fontfamily = "sans",
+        rotation = 1,
+)
+}
+```
+
+```{r}
+# Load libraries
+library(scater)
+library(Seurat)
+library(tidyverse)
+library(cowplot)
+library(Matrix.utils)
+library(edgeR)
+library(dplyr)
+library(magrittr)
+library(Matrix)
+library(purrr)
+library(reshape2)
+library(S4Vectors)
+library(tibble)
+library(SingleCellExperiment)
+library(pheatmap)
+library(apeglm)
+library(png)
+library(DESeq2)
+library(RColorBrewer)
+library(ArchR)
+library(MetBrewer)
+```
+
+```{r}
+lvad <- readRDS("../4 - postContamination/harmony_annotated.rds")
+```
+
+```{r}
+unique(lvad$condition)
+```
+
+```{r}
+fun <- function(x) {
+  if (x == "Rpost") {"Rpost"} 
+  else if (x == "Donor") {"Donor"}
+  else if (x == "NRpost") {"NRpost"}
+  else if (x == "Rpre") {"HF"}
+  else if (x == "NRpre") {"HF"}
+}
+lvad$condition2 <- mapply(fun, lvad$condition)
+```
+
+```{r}
+seurat <- lvad
+seurat$orig.ident <- gsub("-", "", seurat$orig.ident)
+seurat$orig.ident <- gsub("_", "", seurat$orig.ident)
+```
+
+```{r}
+# Extract raw counts and metadata to create SingleCellExperiment object
+counts <- seurat@assays$RNA@counts 
+
+metadata <- seurat@meta.data
+
+# Set up metadata as desired for aggregation and DE analysis
+metadata$cluster_id <- factor(seurat$cell.type)
+metadata$sample_id <- factor(seurat$orig.ident)
+#metadata$sample_id <- factor(seurat$condition2)
+metadata$group_id <- factor(seurat$condition2)
+
+# Create single cell experiment object
+sce <- SingleCellExperiment(assays = list(counts = counts), 
+                           colData = metadata)
+
+# Identify groups for aggregation of counts
+groups <- colData(sce)[, c("cluster_id", "sample_id")]
+
+# Named vector of cluster names
+kids <- purrr::set_names(levels(sce$cluster_id))
+
+# Total number of clusters
+nk <- length(kids)
+
+# Named vector of sample names
+sids <- purrr::set_names(levels(sce$sample_id))
+
+# Total number of samples 
+ns <- length(sids)
+
+# Generate sample level metadata
+
+## Turn named vector into a numeric vector of number of cells per sample
+n_cells <- as.numeric(table(sce$sample_id))
+
+## Determine how to reoder the samples (rows) of the metadata to match the order of sample names in sids vector
+m <- match(sids, sce$sample_id)
+
+## Create the sample level metadata by combining the reordered metadata with the number of cells corresponding to each sample.
+ei <- data.frame(colData(sce)[m, ], 
+                  n_cells, row.names = NULL) %>% 
+                select(-"cluster_id")
+```
+
+```{r}
+# Perform QC if not already performed
+dim(sce)
+
+## Remove lowly expressed genes which have less than 10 cells with any counts
+sce <- sce[rowSums(counts(sce) > 1) >= 10, ]
+
+dim(sce)
+```
+
+```{r}
+# Aggregate the counts per sample_id and cluster_id
+
+# Subset metadata to only include the cluster and sample IDs to aggregate across
+groups <- colData(sce)[, c("cluster_id", "sample_id")]
+
+# Aggregate across cluster-sample groups
+pb <- aggregate.Matrix(t(counts(sce)), 
+                       groupings = groups, fun = "sum") 
+
+# Not every cluster is present in all samples; create a vector that represents how to split samples
+splitf <- sapply(stringr::str_split(rownames(pb), 
+                                    pattern = "_",  
+                                    n = 2), 
+                 `[`, 1)
+# Turn into a list and split the list into components for each cluster and transform, so rows are genes and columns are samples and make rownames as the sample IDs
+pb <- split.data.frame(pb, 
+                       factor(splitf)) %>%
+        lapply(function(u) 
+                set_colnames(t(u), 
+                             stringr::str_extract(rownames(u), "(?<=_)[:alnum:]+")))
+
+```
+
+```{r}
+# Print out the table of cells in each cluster-sample group
+options(width = 100)
+table(sce$cluster_id, sce$sample_id)
+```
+
+```{r}
+# Get sample names for each of the cell type clusters
+
+# prep. data.frame for plotting
+get_sample_ids <- function(x){
+        pb[[x]] %>%
+                colnames()
+}
+
+de_samples <- map(1:length(kids), get_sample_ids) %>%
+        unlist()
+```
+
+```{r}
+# Get cluster IDs for each of the samples
+
+samples_list <- map(1:length(kids), get_sample_ids)
+
+get_cluster_ids <- function(x){
+        rep(names(pb)[x], 
+            each = length(samples_list[[x]]))
+}
+
+de_cluster_ids <- map(1:length(kids), get_cluster_ids) %>%
+        unlist()
+```
+
+```{r}
+# Create a data frame with the sample IDs, cluster IDs and condition
+
+gg_df <- data.frame(cluster_id = de_cluster_ids,
+                    sample_id = de_samples)
+
+gg_df <- left_join(gg_df, ei[, c("sample_id", "group_id")]) 
+
+
+metadata <- gg_df %>%
+        dplyr::select(cluster_id, sample_id, group_id) 
+        
+metadata      
+```
+
+```{r}
+unique(metadata$sample_id)
+```
+
+```{r}
+# Generate vector of cluster IDs
+clusters <- unique(metadata$cluster_id)
+clusters
+```
+
+```{r}
+cluster_num <- 10
+
+# Subset the metadata to only the desired cells
+cluster_metadata <- metadata[which(metadata$cluster_id == clusters[cluster_num]), ]
+
+# Assign the rownames of the metadata to be the sample IDs
+rownames(cluster_metadata) <- cluster_metadata$sample_id
+
+# Subset the counts to only the desired cells
+counts <- pb[[clusters[cluster_num]]]
+
+cluster_counts <- data.frame(counts[, which(colnames(counts) %in% rownames(cluster_metadata))])
+
+# Check that all of the row names of the metadata are the same and in the same order as the column names of the counts in order to use as input to DESeq2
+all(rownames(cluster_metadata) == colnames(cluster_counts))   
+
+rld <- rlog(as.matrix(cluster_counts))
+```
+
+# Heatmap of top genes (UP)
+```{r}
+cell_types <- c("Adipocyte","Cardiomyocyte", "Endocardium", "Endothelium", "Epicardium", "Fibroblast", "Glia", "Lymphatic", "Mast", "Myeloid", "Pericyte", "SMC", "TNKCells")
+```
+
+```{r}
+data_rpost_hf_RPOST_subset <- filter(data_rpost_hf_RPOST, data_rpost_hf_RPOST$cell == "Fibroblast")$gene
+data_hf_donor_HF_subset <- filter(data_hf_donor_HF, data_hf_donor_HF$cell == "Fibroblast")$gene
+data_rpost_donor_RPOST_subset <- filter(data_rpost_donor_RPOST, data_rpost_donor_RPOST$cell == "Fibroblast")$gene
+
+s1 <- Reduce(intersect,list(data_rpost_donor_RPOST_subset, data_rpost_hf_RPOST_subset))
+rpost_genes <- setdiff(s1, data_hf_donor_HF_subset)
+
+rpost_donorHF <-read_delim("./DE_analysis/DonorHF_Rpost/Fibroblast_Rpost_vs_DonorHF_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+```
+
+```{r}
+rpost_donorHF <- filter(rpost_donorHF, rpost_donorHF$gene %in% rpost_genes)
+rpost_donorHF <- rpost_donorHF[order(-rpost_donorHF$log2FoldChange),] 
+write.csv(rpost_donorHF, "./Rpost_unique_genes/Fibroblast_up_recovery_genes.csv",
+          quote = FALSE, 
+          row.names = FALSE)
+```
+
+```{r}
+x <- t(rld)[,rpost_donorHF$gene[1:25]]
+#x <- t(rld)[,rpost_genes]
+```
+
+```{r}
+pheatmap(t(x)[,c("Donor","HF","Rpost","NRpost")], scale = "row", border_color = NA, cluster_cols = FALSE)
+```
+
+# Heatmap of top genes (DOWN)
+```{r}
+cell_types <- c("Adipocyte","Cardiomyocyte", "Endocardium", "Endothelium", "Epicardium", "Fibroblast", "Glia", "Lymphatic", "Mast", "Myeloid", "Pericyte", "SMC", "TNKCells")
+```
+
+```{r}
+data_rpost_hf_HF_subset <- filter(data_rpost_hf_HF, data_rpost_hf_HF$cell == "Fibroblast")$gene
+data_hf_donor_Donor_subset <- filter(data_hf_donor_Donor, data_hf_donor_Donor$cell == "Fibroblast")$gene
+data_rpost_donor_Donor_subset <- filter(data_rpost_donor_Donor, data_rpost_donor_Donor$cell == "Fibroblast")$gene
+
+
+s1 <- Reduce(intersect,list(data_rpost_hf_HF_subset, data_rpost_donor_Donor_subset))
+rpost_genes <- setdiff(s1, data_hf_donor_Donor_subset)
+
+rpost_donorHF <-read_delim("./DE_analysis/DonorHF_Rpost/Fibroblast_Rpost_vs_DonorHF_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+```
+
+```{r}
+rpost_donorHF <- filter(rpost_donorHF, rpost_donorHF$gene %in% rpost_genes)
+rpost_donorHF <- rpost_donorHF[order(-rpost_donorHF$log2FoldChange),] 
+write.csv(rpost_donorHF, "./Rpost_unique_genes/Fibroblast_down_recovery_genes.csv",
+          quote = FALSE, 
+          row.names = FALSE)
+```
+
+```{r}
+x <- t(rld)[,rpost_donorHF$gene[1:25]]
+#x <- t(rld)[,rpost_genes]
+```
+
+```{r}
+pheatmap(t(x)[,c("Donor","HF","Rpost","NRpost")], scale = "row", border_color = NA, cluster_cols = FALSE)
+```
+
+
+###### Intersecting Genes
+# Up
+```{r}
+data_rpost_hf_RPOST_subset <- filter(data_rpost_hf_RPOST, data_rpost_hf_RPOST$cell == "Myeloid")$gene
+data_hf_donor_HF_subset <- filter(data_hf_donor_HF, data_hf_donor_HF$cell == "Myeloid")$gene
+data_rpost_donor_RPOST_subset <- filter(data_rpost_donor_RPOST, data_rpost_donor_RPOST$cell == "Myeloid")$gene
+s1 <- Reduce(intersect,list(data_rpost_donor_RPOST_subset, data_rpost_hf_RPOST_subset))
+rpost_genes_Myeloid <- setdiff(s1, data_hf_donor_HF_subset)
+
+data_rpost_hf_RPOST_subset <- filter(data_rpost_hf_RPOST, data_rpost_hf_RPOST$cell == "Fibroblast")$gene
+data_hf_donor_HF_subset <- filter(data_hf_donor_HF, data_hf_donor_HF$cell == "Fibroblast")$gene
+data_rpost_donor_RPOST_subset <- filter(data_rpost_donor_RPOST, data_rpost_donor_RPOST$cell == "Fibroblast")$gene
+s1 <- Reduce(intersect,list(data_rpost_donor_RPOST_subset, data_rpost_hf_RPOST_subset))
+rpost_genes_Fibroblast <- setdiff(s1, data_hf_donor_HF_subset)
+
+data_rpost_hf_RPOST_subset <- filter(data_rpost_hf_RPOST, data_rpost_hf_RPOST$cell == "Endothelium")$gene
+data_hf_donor_HF_subset <- filter(data_hf_donor_HF, data_hf_donor_HF$cell == "Endothelium")$gene
+data_rpost_donor_RPOST_subset <- filter(data_rpost_donor_RPOST, data_rpost_donor_RPOST$cell == "Endothelium")$gene
+s1 <- Reduce(intersect,list(data_rpost_donor_RPOST_subset, data_rpost_hf_RPOST_subset))
+rpost_genes_Endothelium <- setdiff(s1, data_hf_donor_HF_subset)
+
+data_rpost_hf_RPOST_subset <- filter(data_rpost_hf_RPOST, data_rpost_hf_RPOST$cell == "Endocardium")$gene
+data_hf_donor_HF_subset <- filter(data_hf_donor_HF, data_hf_donor_HF$cell == "Endocardium")$gene
+data_rpost_donor_RPOST_subset <- filter(data_rpost_donor_RPOST, data_rpost_donor_RPOST$cell == "Endocardium")$gene
+s1 <- Reduce(intersect,list(data_rpost_donor_RPOST_subset, data_rpost_hf_RPOST_subset))
+rpost_genes_Endocardium <- setdiff(s1, data_hf_donor_HF_subset)
+
+data_rpost_hf_RPOST_subset <- filter(data_rpost_hf_RPOST, data_rpost_hf_RPOST$cell == "Cardiomyocyte")$gene
+data_hf_donor_HF_subset <- filter(data_hf_donor_HF, data_hf_donor_HF$cell == "Cardiomyocyte")$gene
+data_rpost_donor_RPOST_subset <- filter(data_rpost_donor_RPOST, data_rpost_donor_RPOST$cell == "Cardiomyocyte")$gene
+s1 <- Reduce(intersect,list(data_rpost_donor_RPOST_subset, data_rpost_hf_RPOST_subset))
+rpost_genes_Cardiomyocyte <- setdiff(s1, data_hf_donor_HF_subset)
+```
+
+```{r}
+intersecting_genes_recovery_up <- Reduce(intersect,list(rpost_genes_Myeloid, rpost_genes_Fibroblast, 
+                                                        rpost_genes_Endothelium, rpost_genes_Endocardium,
+                                                        rpost_genes_Cardiomyocyte))
+```
+
+```{r}
+x <- t(rld)[,intersecting_genes_recovery_up]
+#x <- t(rld)[,rpost_genes]
+
+pheatmap(t(x)[,c("Donor","HF","Rpost","NRpost")], scale = "row", border_color = NA, cluster_cols = FALSE,
+         cluster_rows = FALSE)
+```
+
+
+###### Intersecting Genes
+# down
+```{r}
+data_rpost_hf_HF_subset <- filter(data_rpost_hf_HF, data_rpost_hf_HF$cell == "Cardiomyocyte")$gene
+data_hf_donor_Donor_subset <- filter(data_hf_donor_Donor, data_hf_donor_Donor$cell == "Cardiomyocyte")$gene
+data_rpost_donor_Donor_subset <- filter(data_rpost_donor_Donor, data_rpost_donor_Donor$cell == "Cardiomyocyte")$gene
+s1 <- Reduce(intersect,list(data_rpost_hf_HF_subset, data_rpost_donor_Donor_subset))
+rpost_genes_Cardiomyocyte <- setdiff(s1, data_hf_donor_Donor_subset)
+
+data_rpost_hf_HF_subset <- filter(data_rpost_hf_HF, data_rpost_hf_HF$cell == "Endocardium")$gene
+data_hf_donor_Donor_subset <- filter(data_hf_donor_Donor, data_hf_donor_Donor$cell == "Endocardium")$gene
+data_rpost_donor_Donor_subset <- filter(data_rpost_donor_Donor, data_rpost_donor_Donor$cell == "Endocardium")$gene
+s1 <- Reduce(intersect,list(data_rpost_hf_HF_subset, data_rpost_donor_Donor_subset))
+rpost_genes_Endocardium <- setdiff(s1, data_hf_donor_Donor_subset)
+
+data_rpost_hf_HF_subset <- filter(data_rpost_hf_HF, data_rpost_hf_HF$cell == "Endothelium")$gene
+data_hf_donor_Donor_subset <- filter(data_hf_donor_Donor, data_hf_donor_Donor$cell == "Endothelium")$gene
+data_rpost_donor_Donor_subset <- filter(data_rpost_donor_Donor, data_rpost_donor_Donor$cell == "Endothelium")$gene
+s1 <- Reduce(intersect,list(data_rpost_hf_HF_subset, data_rpost_donor_Donor_subset))
+rpost_genes_Endothelium <- setdiff(s1, data_hf_donor_Donor_subset)
+
+data_rpost_hf_HF_subset <- filter(data_rpost_hf_HF, data_rpost_hf_HF$cell == "Fibroblast")$gene
+data_hf_donor_Donor_subset <- filter(data_hf_donor_Donor, data_hf_donor_Donor$cell == "Fibroblast")$gene
+data_rpost_donor_Donor_subset <- filter(data_rpost_donor_Donor, data_rpost_donor_Donor$cell == "Fibroblast")$gene
+s1 <- Reduce(intersect,list(data_rpost_hf_HF_subset, data_rpost_donor_Donor_subset))
+rpost_genes_Fibroblast <- setdiff(s1, data_hf_donor_Donor_subset)
+
+data_rpost_hf_HF_subset <- filter(data_rpost_hf_HF, data_rpost_hf_HF$cell == "Myeloid")$gene
+data_hf_donor_Donor_subset <- filter(data_hf_donor_Donor, data_hf_donor_Donor$cell == "Myeloid")$gene
+data_rpost_donor_Donor_subset <- filter(data_rpost_donor_Donor, data_rpost_donor_Donor$cell == "Myeloid")$gene
+s1 <- Reduce(intersect,list(data_rpost_hf_HF_subset, data_rpost_donor_Donor_subset))
+rpost_genes_Myeloid <- setdiff(s1, data_hf_donor_Donor_subset)
+```
+
+```{r}
+intersecting_genes_recovery_down <- Reduce(intersect,list(rpost_genes_Myeloid, rpost_genes_Fibroblast, 
+                                                        rpost_genes_Endothelium, rpost_genes_Endocardium,
+                                                        rpost_genes_Cardiomyocyte))
+```
+
+```{r}
+intersecting_genes_recovery_down
+```
+
+```{r}
+x <- t(rld)[,intersecting_genes_recovery_down]
+#x <- t(rld)[,rpost_genes]
+
+pheatmap(t(x)[,c("Donor","HF","Rpost","NRpost")], scale = "none", border_color = NA, cluster_cols = FALSE,
+         cluster_rows = FALSE)
+```
+
+# Scatter plot
+```{r}
+Idents(lvad) <- "cell.type"
+lvad$cell.type <- factor(lvad$cell.type, levels = c("Cardiomyocyte", "Endocardium", "Endothelium", "Epicardium", "Fibroblast", "Glia", "Adipocyte", "Lymphatic", "Mast", "Myeloid", "Pericyte", "SMC", "TNKCells"), ordered = TRUE)
+```
+
+```{r}
+cardiac_remodeling <- read_delim("./Rpost_unique_genes/remodeling_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+cardiac_remodeling$cell_type <- factor(cardiac_remodeling$cell_type, levels = c("Cardiomyocyte", "Endocardium", "Endothelium", "Epicardium", "Fibroblast", "Glia", "Adipocyte", "Lymphatic", "Mast", "Myeloid", "Pericyte", "SMC", "TNKCells"), ordered = TRUE)
+cardiac_remodeling
+```
+
+```{r}
+ggplot(cardiac_remodeling, aes(Recovery, HFPersistent, color=cell_type)) +
+  geom_point(aes(size=R_P)) +
+  scale_color_manual(values=as.vector(paletteDiscrete(unique(lvad$cell.type), set = "stallion"))) + theme_bw() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
+  xlab("Recovery") +
+  ylab("HFPersistent") + xlim(0,800) + ylim(0,800)
+```
+```{r}
+ggplot(cardiac_remodeling, aes(HFPersistent, HFReversed, color=cell_type)) +
+  geom_point(aes(size=P_R)) +
+  scale_color_manual(values=as.vector(paletteDiscrete(unique(lvad$cell.type), set = "stallion")))+ theme_bw() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
+  xlab("HFPersistent") +
+  ylab("HFReversed") + xlim(0,800) + ylim(0,800)
+```
+
+```{r}
+ggplot(cardiac_remodeling, aes(Recovery, HFReversed, color=cell_type)) +
+  geom_point(aes(size=R_R)) +
+  scale_color_manual(values=as.vector(paletteDiscrete(unique(lvad$cell.type), set = "stallion"))) + theme_bw() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
+  xlab("Recovery") +
+  ylab("HFReversed") + xlim(0,800) + ylim(0,800)
+```
+
+```{r}
+library("scatterplot3d") # load
+```
+
+```{r}
+scatterplot3d(cardiac_remodeling[,2:4],type="h")
+```
+
+# Define cell specific unique genes
+```{r}
+unique_up <- read_delim("./Rpost_unique_genes/n_uniquegenes_up.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+```
+
+```{r}
+unique_up <- data.frame(unique_up)
+unique_up$cell_types <- factor(unique_up$cell_types, levels=c("Myeloid","Fibroblast","Endothelium","Endocardium","Cardiomyocyte"))
+
+ggplot(unique_up, aes(x = cell_types, y = n_genes, fill = direction)) + geom_col() + labs(x="Cell Type", y="#Genes", fill="Significance") + scale_fill_manual(values = c("dodgerblue4", "red3")) + theme_bw() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+```{r}
+unique_down <- read_delim("./Rpost_unique_genes/n_uniquegenes_down.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+```
+
+```{r}
+unique_down <- data.frame(unique_down)
+unique_down$cell_types <- factor(unique_down$cell_types, levels=c("Myeloid","Fibroblast","Endothelium","Endocardium","Cardiomyocyte"))
+
+ggplot(unique_down, aes(x = cell_types, y = n_genes, fill = direction)) + geom_col() + labs(x="Cell Type", y="#Genes", fill="Significance") + scale_fill_manual(values = c("dodgerblue4", "red3")) + theme_bw() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+###### Recovery signature as a function of EF
+```{r}
+# Generate vector of cluster IDs
+clusters <- unique(metadata$cluster_id)
+clusters
+```
+
+```{r}
+cluster_num <- 2
+
+# Subset the metadata to only the desired cells
+cluster_metadata <- metadata[which(metadata$cluster_id == clusters[cluster_num]), ]
+
+# Assign the rownames of the metadata to be the sample IDs
+rownames(cluster_metadata) <- cluster_metadata$sample_id
+
+# Subset the counts to only the desired cells
+counts <- pb[[clusters[cluster_num]]]
+
+cluster_counts <- data.frame(counts[, which(colnames(counts) %in% rownames(cluster_metadata))])
+
+# Check that all of the row names of the metadata are the same and in the same order as the column names of the counts in order to use as input to DESeq2
+all(rownames(cluster_metadata) == colnames(cluster_counts))   
+
+rld <- rlog(as.matrix(cluster_counts))
+```
+
+# Up
+```{r}
+data_rpost_hf_RPOST_subset <- filter(data_rpost_hf_RPOST, data_rpost_hf_RPOST$cell == "Endocardium")$gene
+data_hf_donor_HF_subset <- filter(data_hf_donor_HF, data_hf_donor_HF$cell == "Endocardium")$gene
+data_rpost_donor_RPOST_subset <- filter(data_rpost_donor_RPOST, data_rpost_donor_RPOST$cell == "Endocardium")$gene
+
+s1 <- Reduce(intersect,list(data_rpost_donor_RPOST_subset, data_rpost_hf_RPOST_subset))
+rpost_genes <- setdiff(s1, data_hf_donor_HF_subset)
+```
+
+```{r}
+x <- t(t(rld)[,rpost_genes])
+```
+
+```{r}
+expdata <- x
+Pop1 <- rpost_genes
+pops<-list(Pop1)
+#Z-Scores
+z_scores<-NULL
+
+for (i in 1:length(pops)) {
+genes <- pops[[i]]
+zz <- which(tolower(rownames(expdata)) %in% tolower(genes))
+av <- numeric(ncol(expdata))
+
+geneExp <- as.matrix(expdata[zz, ])
+geneExp <- t(scale(t(geneExp)))
+geneExp[is.nan(geneExp)] <- 0
+z_scores <- rbind(z_scores,(av + colSums(geneExp) / length(zz)))
+}
+```
+
+```{r}
+as.data.frame(z_scores[1,])
+```
+
+# Down
+```{r}
+data_rpost_hf_HF_subset <- filter(data_rpost_hf_HF, data_rpost_hf_HF$cell == "Cardiomyocyte")$gene
+data_hf_donor_Donor_subset <- filter(data_hf_donor_Donor, data_hf_donor_Donor$cell == "Cardiomyocyte")$gene
+data_rpost_donor_Donor_subset <- filter(data_rpost_donor_Donor, data_rpost_donor_Donor$cell == "Cardiomyocyte")$gene
+
+s1 <- Reduce(intersect,list(data_rpost_hf_HF_subset, data_rpost_donor_Donor_subset))
+rpost_genes <- setdiff(s1, data_hf_donor_Donor_subset)
+```
+
+```{r}
+x <- t(t(rld)[,rpost_genes])
+```
+
+```{r}
+expdata <- x
+Pop1 <- rpost_genes
+pops<-list(Pop1)
+#Z-Scores
+z_scores<-NULL
+
+for (i in 1:length(pops)) {
+genes <- pops[[i]]
+zz <- which(tolower(rownames(expdata)) %in% tolower(genes))
+av <- numeric(ncol(expdata))
+
+geneExp <- as.matrix(expdata[zz, ])
+geneExp <- t(scale(t(geneExp)))
+geneExp[is.nan(geneExp)] <- 0
+z_scores <- rbind(z_scores,(av + colSums(geneExp) / length(zz)))
+}
+```
+
+```{r}
+as.data.frame(z_scores[1,])
+```
+
+
+
+
+
+
+
+
+
+
+

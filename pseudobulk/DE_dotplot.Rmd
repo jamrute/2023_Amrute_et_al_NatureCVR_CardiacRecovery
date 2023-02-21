@@ -1,0 +1,135 @@
+```{r}
+library(Seurat)
+library(ggplot2)
+library(patchwork)
+library(ggpubr)
+library(dplyr)
+library(Seurat)
+library(patchwork)
+library(sctransform)
+library(ggplot2)
+library(pheatmap)
+library(Seurat)
+library(ggplot2)
+library(Matrix)
+library(RColorBrewer)
+library(dplyr)
+library(scales)
+library(data.table)
+library(stats)
+library("Nebulosa")
+library(tidyverse)
+library(hrbrthemes)
+library(viridis)
+library(magrittr)
+library(dplyr)
+```
+
+```{r}
+Adipocyte <- read_delim("./DE_analysis/Rpost_Donor/Adipocyte_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Adipocyte$cell <- "Adipocyte"
+Adipocyte$sigpvalue <- ifelse(Adipocyte$padj < 0.05, "p < 0.05","p > 0.05")
+Adipocyte$sig <- ifelse(Adipocyte$padj < 0.05 & abs(Adipocyte$log2FoldChange) > 0, "Significant","Not Significant")
+
+Cardiomyocyte <- read_delim("./DE_analysis/Rpost_Donor/Cardiomyocyte_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Cardiomyocyte$cell <- "Cardiomyocyte"
+Cardiomyocyte$sigpvalue <- ifelse(Cardiomyocyte$padj < 0.05, "p < 0.05","p > 0.05")
+Cardiomyocyte$sig <- ifelse(Cardiomyocyte$padj < 0.05 & abs(Cardiomyocyte$log2FoldChange) > 0, "Significant","Not Significant")
+
+Endocardium <- read_delim("./DE_analysis/Rpost_Donor/Endocardium_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Endocardium$cell <- "Endocardium"
+Endocardium$sigpvalue <- ifelse(Endocardium$padj < 0.05, "p < 0.05","p > 0.05")
+Endocardium$sig <- ifelse(Endocardium$padj < 0.05 & abs(Endocardium$log2FoldChange) > 0, "Significant","Not Significant")
+
+Endothelium <- read_delim("./DE_analysis/Rpost_Donor/Endothelium_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Endothelium$cell <- "Endothelium"
+Endothelium$sigpvalue <- ifelse(Endothelium$padj < 0.05, "p < 0.05","p > 0.05")
+Endothelium$sig <- ifelse(Endothelium$padj < 0.05 & abs(Endothelium$log2FoldChange) > 0, "Significant","Not Significant")
+
+Epicardium <- read_delim("./DE_analysis/Rpost_Donor/Epicardium_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Epicardium$cell <- "Epicardium"
+Epicardium$sigpvalue <- ifelse(Epicardium$padj < 0.05, "p < 0.05","p > 0.05")
+Epicardium$sig <- ifelse(Epicardium$padj < 0.05 & abs(Epicardium$log2FoldChange) > 0, "Significant","Not Significant")
+
+Fibroblast <- read_delim("./DE_analysis/Rpost_Donor/Fibroblast_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Fibroblast$cell <- "Fibroblast"
+Fibroblast$sigpvalue <- ifelse(Fibroblast$padj < 0.05, "p < 0.05","p > 0.05")
+Fibroblast$sig <- ifelse(Fibroblast$padj < 0.05 & abs(Fibroblast$log2FoldChange) > 0, "Significant","Not Significant")
+
+Glia <- read_delim("./DE_analysis/Rpost_Donor/Glia_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Glia$cell <- "Glia"
+Glia$sigpvalue <- ifelse(Glia$padj < 0.05, "p < 0.05","p > 0.05")
+Glia$sig <- ifelse(Glia$padj < 0.05 & abs(Glia$log2FoldChange) > 0, "Significant","Not Significant")
+
+Lymphatic <- read_delim("./DE_analysis/Rpost_Donor/Lymphatic_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Lymphatic$cell <- "Lymphatic"
+Lymphatic$sigpvalue <- ifelse(Lymphatic$padj < 0.05, "p < 0.05","p > 0.05")
+Lymphatic$sig <- ifelse(Lymphatic$padj < 0.05 & abs(Lymphatic$log2FoldChange) > 0, "Significant","Not Significant")
+
+Mast <- read_delim("./DE_analysis/Rpost_Donor/Mast_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Mast$cell <- "Mast"
+Mast$sigpvalue <- ifelse(Mast$padj < 0.05, "p < 0.05","p > 0.05")
+Mast$sig <- ifelse(Mast$padj < 0.05 & abs(Mast$log2FoldChange) > 0, "Significant","Not Significant")
+
+Myeloid <- read_delim("./DE_analysis/Rpost_Donor/Myeloid_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Myeloid$cell <- "Myeloid"
+Myeloid$sigpvalue <- ifelse(Myeloid$padj < 0.05, "p < 0.05","p > 0.05")
+Myeloid$sig <- ifelse(Myeloid$padj < 0.05 & abs(Myeloid$log2FoldChange) > 0, "Significant","Not Significant")
+
+Pericyte <- read_delim("./DE_analysis/Rpost_Donor/Pericyte_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Pericyte$cell <- "Pericyte"
+Pericyte$sigpvalue <- ifelse(Pericyte$padj < 0.05, "p < 0.05","p > 0.05")
+Pericyte$sig <- ifelse(Pericyte$padj < 0.05 & abs(Pericyte$log2FoldChange) > 0, "Significant","Not Significant")
+
+SMC <- read_delim("./DE_analysis/Rpost_Donor/SMC_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+SMC$cell <- "SMC"
+SMC$sigpvalue <- ifelse(SMC$padj < 0.05, "p < 0.05","p > 0.05")
+SMC$sig <- ifelse(SMC$padj < 0.05 & abs(SMC$log2FoldChange) > 0, "Significant","Not Significant")
+
+TNKCells <- read_delim("./DE_analysis/Rpost_Donor/TNKCells_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+TNKCells$cell <- "TNKCells"
+TNKCells$sigpvalue <- ifelse(TNKCells$padj < 0.05, "p < 0.05","p > 0.05")
+TNKCells$sig <- ifelse(TNKCells$padj < 0.05 & abs(TNKCells$log2FoldChange) > 0, "Significant","Not Significant")
+```
+
+```{r}
+#create data frame
+data <- data.frame(rbind(Adipocyte, Cardiomyocyte, Endocardium, Endothelium, Epicardium, Fibroblast, Glia, Lymphatic, Mast, Myeloid, Pericyte, SMC, TNKCells))
+data$cell <- factor(data$cell, levels = c("Adipocyte","Cardiomyocyte", "Endocardium", "Endothelium", "Epicardium", "Fibroblast", "Glia", "Lymphatic", "Mast", "Myeloid", "Pericyte", "SMC", "TNKCells"))
+table(data$cell, data$sig)
+```
+
+
+```{r}
+df_Count <- data %>% group_by(sig, cell) %>% dplyr::count()
+df_Count <- data.frame(df_Count)
+
+x <- df_Count[with(df_Count,order(n,decreasing = T)) ,][df_Count[with(df_Count,order(n, decreasing = T)) ,]$sig=="Significant",]$cell
+df_Count$cell <- factor(df_Count$cell, levels = x)
+
+data$cell <- factor(data$cell, levels = x)
+data %>%
+  ggplot(aes(x=cell, y=log2FoldChange, fill=cell, color=sig)) +
+  geom_jitter(size=1, alpha=0.5, position=position_jitter(0.2)) + 
+  theme_bw() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + theme(panel.border = element_blank(), panel.grid.major = element_blank(),panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), legend.position="none") + scale_y_continuous(limits = c(-6, 6)) +
+  ggtitle("Pseudobulk DE Rpost_vs_Donor") +
+  xlab("Cell types") +
+  scale_shape_manual(values=c(1,1))+
+  scale_color_manual(values=c("grey", "red"))
+```
+
+```{r}
+data$cluster <- ifelse(data$log2FoldChange > 0, "Rpost", "Donor")
+```
+
+```{r}
+df_Count <- data %>% group_by(sig, cell) %>% dplyr::count(cluster)
+df_Count <- data.frame(df_Count)
+
+df_Count$cell <- factor(df_Count$cell)
+df_Count <- filter(df_Count, df_Count$sig == "Significant")
+ggplot(df_Count, aes(x = cell, y = n, fill = cluster)) + geom_col() + labs(x="Cell Type", y="#Genes", fill="Significance") + scale_fill_manual(values = c("dodgerblue4", "red3")) + theme_bw() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+

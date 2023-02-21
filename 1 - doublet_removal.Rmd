@@ -1,0 +1,94 @@
+```{r}
+library(Seurat)
+library(patchwork)
+library(SeuratDisk)
+```
+
+```{r}
+sample_filtered <- readRDS("./merged_postQC.rds")
+```
+
+```{r}
+sample_filtered <- UpdateSeuratObject(sample_filtered)
+sample_filtered
+```
+
+```{r}
+sample_filtered <- subset(sample_filtered, subset = nCount_RNA > 1000 & nCount_RNA < 10000 & percent.mt < 5)
+```
+
+```{r}
+sample_filtered
+```
+
+```{r}
+VlnPlot(sample_filtered, group.by = "orig.ident", features = "nCount_RNA", pt.size = 0) + NoLegend()
+VlnPlot(sample_filtered, group.by = "orig.ident", features = "percent.mt", pt.size = 0) + NoLegend()
+```
+
+```{r}
+SaveH5Seurat(sample_filtered, filename = "./merged_postQC.h5Seurat")
+```
+
+```{r}
+Convert("./merged_postQC.h5Seurat", dest = "h5ad")
+```
+
+```{r}
+#### Load in doublet output
+scrub = read.csv('./scrublet/scrublet-scores/all.csv',header=T,row.names=1)
+```
+
+```{r}
+sample_filtered@meta.data$scrublet_score = scrub$scrublet_score
+sample_filtered@meta.data$scrublet_cluster_score = scrub$scrublet_cluster_score
+sample_filtered@meta.data$bh_pval = scrub$bh_pval
+```
+
+```{r}
+VlnPlot(sample_filtered, group.by = "orig.ident", features = "scrublet_score", pt.size = 0) + NoLegend()
+```
+
+```{r}
+sample_filtered
+```
+
+```{r}
+sample_filtered2 <- subset(
+  x = sample_filtered,
+  subset = scrublet_score < 0.2
+)
+```
+
+```{r}
+sample_filtered2
+```
+
+```{r}
+VlnPlot(sample_filtered2, group.by = "orig.ident", features = "scrublet_score", pt.size = 0) + NoLegend()
+```
+
+```{r}
+saveRDS(sample_filtered2, "./merged_postQC_doubletRemoval.rds")
+```
+
+```{r}
+load("./RefMerge_Harmony.Robj")
+```
+
+```{r}
+meta <- RefMerge@meta.data[,c("percent.mito","percent.mt")]
+meta <- mutate(meta, mycol = coalesce(percent.mito,percent.mt))
+RefMerge@meta.data$percent.mt.merged <- meta$mycol
+```
+
+
+
+
+
+
+
+
+
+
+

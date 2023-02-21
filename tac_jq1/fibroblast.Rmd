@@ -1,0 +1,118 @@
+```{r}
+library(dplyr)
+library(Seurat)
+library(patchwork)
+library(sctransform)
+library(ggplot2)
+library(harmony)
+library(ArchR)
+library(ggsci)
+library(SeuratDisk)
+```
+
+```{r}
+sample <- readRDS("/Users/jamrute/Library/CloudStorage/Box-Box/Macbook_Files/Grad_School/Primary_Projects/Recovery/Human_Recovery\ snRNAseq/TAC_mouse_recovery_JQ1/RNA/reprocess/analysis/global/postClean/annotated_RNA.rds")
+```
+
+```{r}
+Idents(sample) <- "cell.type"
+myeloid <- subset(sample, idents = "Fibroblast")
+DefaultAssay(myeloid) <- "RNA"
+myeloid <- NormalizeData(myeloid)
+all.genes <- rownames(myeloid)
+myeloid <- ScaleData(myeloid, features = all.genes)
+myeloid <- FindVariableFeatures(myeloid, selection.method = "vst", nfeatures = 3000)
+myeloid <- RunPCA(myeloid, features = VariableFeatures(object = myeloid), npcs=100, verbose=TRUE)
+myeloid <- RunHarmony(myeloid, c("sample"), reduction = "pca", reduction.save = "harmony", assay.use = "RNA")
+myeloid <- RunUMAP(myeloid, reduction = "harmony", dims = 1:50)
+myeloid <- FindNeighbors(myeloid, reduction = "harmony", dims = 1:50)
+myeloid <- FindClusters(myeloid, graph.name = "RNA_snn", algorithm = 3, resolution = c(0.1,0.3,0.5), verbose = FALSE)
+```
+
+```{r}
+DimPlot(myeloid, reduction = 'umap', label = TRUE, label.size = 5, group.by = "RNA_snn_res.0.3", cols = paletteDiscrete(unique(myeloid$RNA_snn_res.0.3), set = "stallion"))
+```
+
+# DGE
+```{r}
+Idents(myeloid) <- "RNA_snn_res.0.3"
+DefaultAssay(myeloid) <- 'SCT'
+rna.markers <- FindAllMarkers(myeloid, only.pos = TRUE, min.pct = 0.1, logfc.threshold = 0.25)
+write.csv(rna.markers, file ="./v1/RNA_snn_res.0.3_DE.csv", quote = FALSE)
+```
+
+```{r}
+Idents(myeloid) <- "RNA_snn_res.0.5"
+myeloid2 <- subset(myeloid, idents = c("4","6","7"), invert = TRUE)
+```
+
+```{r}
+myeloid2 <- RunUMAP(myeloid2, reduction = "harmony", dims = 1:50)
+myeloid2 <- FindNeighbors(myeloid2, reduction = "harmony", dims = 1:50)
+myeloid2 <- FindClusters(myeloid2, graph.name = "RNA_snn", algorithm = 3, resolution = c(0.1,0.3,0.5), verbose = FALSE)
+```
+
+```{r}
+DimPlot(myeloid2, reduction = 'umap', label = TRUE, label.size = 5, group.by = "RNA_snn_res.0.5", cols = paletteDiscrete(unique(myeloid2$RNA_snn_res.0.5), set = "stallion"), ncol=2)
+```
+```{r}
+Idents(myeloid2) <- "RNA_snn_res.0.5"
+DefaultAssay(myeloid2) <- 'RNA'
+rna.markers <- FindAllMarkers(myeloid2, only.pos = TRUE, min.pct = 0.1, logfc.threshold = 0.25)
+write.csv(rna.markers, file ="./v2/RNA_snn_res.0.5_DE.csv", quote = FALSE)
+```
+
+```{r}
+rna.markers %>%
+    group_by(cluster) %>%
+    top_n(n = 5, wt = avg_log2FC) -> top10
+```
+
+```{r}
+DefaultAssay(myeloid2) <- 'RNA'
+Idents(myeloid2) <- "RNA_snn_res.0.5"
+DoHeatmap(myeloid2, features = top10$gene, assay = "RNA", group.colors = as.vector(paletteDiscrete(unique(myeloid2$RNA_snn_res.0.5), set = "stallion")), size = 2, angle = 90) + NoLegend() + scale_fill_gradientn(colours=paletteContinuous("solarExtra"))
+
+ggsave(filename="heatmap_GEX.png")
+```
+
+```{r}
+ggplot(myeloid2@meta.data, aes(x=condition, fill=RNA_snn_res.0.5)) + geom_bar(position = "fill") + theme_linedraw() + theme(axis.text.x = element_text(angle = 90)) +  scale_fill_manual(values=as.vector(paletteDiscrete(unique(myeloid2$RNA_snn_res.0.5), set = "stallion"))) + theme(axis.line = element_line(colour = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank()) 
+```
+
+
+```{r}
+saveRDS(myeloid2, "./v2/fibroblast.rds")
+```
+
+```{r}
+myeloid2 <- readRDS("./v2/fibroblast_CO_data/fibroblast.rds")
+```
+
+# Export h5ad file for scanpy processing
+```{r}
+myeloid2$condition <- as.character(myeloid2$condition)
+myeloid2$RNA_snn_res.0.5 <- as.character(myeloid2$RNA_snn_res.0.5)
+myeloid2@assays[["SCT"]] <- NULL
+```
+```{r}
+SaveH5Seurat(myeloid2, filename = "./v2/fibroblast.h5Seurat")
+```
+
+```{r}
+Convert("./v2/fibroblast.h5Seurat", dest = "h5ad")
+```
+
+```{r}
+# Save the normalized RNA matrix
+write.csv(as.matrix(myeloid2[["RNA"]]@scale.data), 
+          file = "./v2/fibroblast_RNA_normalized.txt", quote = FALSE)
+
+# Save the meta data
+write.csv(myeloid2@meta.data, file = "./v2/fibroblast_meta.csv", quote = FALSE)
+```
+
+

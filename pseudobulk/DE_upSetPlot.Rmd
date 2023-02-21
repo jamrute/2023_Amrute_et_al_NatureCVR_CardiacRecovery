@@ -1,0 +1,71 @@
+```{r}
+library(Seurat)
+library(ggplot2)
+library(patchwork)
+library(ggpubr)
+library(dplyr)
+library(Seurat)
+library(patchwork)
+library(sctransform)
+library(ggplot2)
+library(pheatmap)
+library(Seurat)
+library(ggplot2)
+library(Matrix)
+library(RColorBrewer)
+library(dplyr)
+library(scales)
+library(data.table)
+library(stats)
+library("Nebulosa")
+library(tidyverse)
+library(hrbrthemes)
+library(viridis)
+library(magrittr)
+library(dplyr)
+```
+
+```{r}
+Myeloid_a <- read_delim("./DE_analysis/Rpost_Donor/Cardiomyocyte_Rpost_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Myeloid_a$condition <- "Rpost_vs_Donor"
+Myeloid_a <- filter(Myeloid_a, Myeloid_a$padj < 0.05)
+Myeloid_a <- filter(Myeloid_a, Myeloid_a$log2FoldChange > 0.58)
+Myeloid_a <- Myeloid_a[,c("gene","condition")]
+```
+
+```{r}
+Myeloid_b <- read_delim("./DE_analysis/RNRpre_Donor/Cardiomyocyte_R_NR_Pre_vs_Donor_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Myeloid_b$condition <- "RNRPre_vs_Donor"
+Myeloid_b <- filter(Myeloid_b, Myeloid_b$padj < 0.05)
+Myeloid_b <- filter(Myeloid_b, Myeloid_b$log2FoldChange > 0.58)
+Myeloid_b <- Myeloid_b[,c("gene","condition")]
+```
+
+```{r}
+Myeloid_c <- read_delim("./DE_analysis/Rpost_RNRPre/Cardiomyocyte_RNRPre_vs_Rpost_all_genes.csv", ",", escape_double = FALSE, trim_ws = TRUE)
+Myeloid_c$condition <- "Rpost_vs_RNRPre"
+Myeloid_c <- filter(Myeloid_c, Myeloid_c$padj < 0.05)
+Myeloid_c <- filter(Myeloid_c, Myeloid_c$log2FoldChange < -0.58)
+Myeloid_c <- Myeloid_c[,c("gene","condition")]
+```
+
+```{r}
+data <- data.frame(rbind(Myeloid_a,Myeloid_b,Myeloid_c))
+```
+
+```{r}
+# example of list input (list of named vectors)
+listInput <- list(Rpost_vs_Donor = Myeloid_a$gene, RNRPre_vs_Donor = Myeloid_b$gene, Rpost_vs_RNRPre = Myeloid_c$gene)
+```
+
+```{r}
+library(UpSetR)
+upset(fromList(listInput), order.by = "freq")
+```
+```{r}
+
+```
+
+
+
+

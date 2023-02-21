@@ -1,0 +1,140 @@
+```{r}
+library(dplyr)
+library(Seurat)
+library(patchwork)
+library(sctransform)
+library(ggplot2)
+library(harmony)
+library(ArchR)
+library(ggsci)
+```
+
+```{r}
+sample <- readRDS("./QC/postQC_doublet.rds")
+```
+
+# SCTransform and filtering
+```{r}
+DefaultAssay(sample) <- 'RNA'
+sample <- SCTransform(sample, vars.to.regress = c("percent.mt", "nCount_RNA"), verbose = TRUE, method = "glmGamPoi")
+sample <- RunPCA(sample, features = VariableFeatures(object = sample), npcs=100, verbose=TRUE)
+```
+
+```{r}
+sample <- RunHarmony(sample, c("sample"), reduction = "pca", assay.use = "SCT")
+```
+
+```{r}
+sample <- RunUMAP(sample, dims = 1:50, reduction = "harmony")
+sample <- FindNeighbors(sample, reduction = "harmony", dims = 1:50)
+sample <- FindClusters(sample, graph.name = "SCT_snn", algorithm = 3, resolution = c(0.1, 0.3, 0.5), verbose = FALSE)
+```
+
+```{r}
+DimPlot(sample, reduction = 'umap', label = TRUE, label.size = 5, group.by = "SCT_snn_res.0.1", cols = paletteDiscrete(unique(sample$SCT_snn_res.0.1), set = "stallion"))
+```
+# DGE
+```{r}
+Idents(sample) <- "SCT_snn_res.0.1"
+DefaultAssay(sample) <- 'SCT'
+rna.markers <- FindAllMarkers(sample, only.pos = TRUE, min.pct = 0.1, logfc.threshold = 0.25)
+write.csv(rna.markers, file ="./SCT_snn_res.0.1_DE.csv", quote = FALSE)
+```
+
+```{r}
+fun <- function(x) {
+  if (x == "0") {"Fibroblast"} 
+  else if (x == "1") {"Endothelium"}
+  else if (x == "2") {"Myeloid"}
+  else if (x == "3") {"SMCPericyte"}
+  else if (x == "4") {"Endocardium"}
+  else if (x == "5") {"Lymphatic"}
+  else if (x == "6") {"RBC"}
+  else if (x == "7") {"Epicardium"}
+  else if (x == "8") {"TNKCells"}
+  else if (x == "9") {"Fibroblast"}
+  else if (x == "10") {"Glia"}
+  else if (x == "11") {"CM"}
+  else if (x == "12") {"BCells"}
+}
+sample$cell.type <- mapply(fun, sample$SCT_snn_res.0.1)
+```
+
+```{r}
+Idents(sample) <- "cell.type"
+sample <- subset(sample, idents = c("Fibroblast","Endothelium","Myeloid","SMCPericyte","Endocardium","Lymphatic","Epicardium","TNKCells","Glia","BCells"))
+```
+
+```{r}
+DimPlot(sample, reduction = 'umap', label = FALSE, group.by = "cell.type", cols = paletteDiscrete(unique(sample$cell.type), set = "stallion"))
+```
+
+```{r}
+sample <- RunUMAP(sample, dims = 1:50, reduction = "harmony")
+sample <- FindNeighbors(sample, reduction = "harmony", dims = 1:50)
+sample <- FindClusters(sample, graph.name = "SCT_snn", algorithm = 3, resolution = c(0.1, 0.3, 0.5), verbose = FALSE)
+```
+
+```{r}
+DimPlot(sample, reduction = 'umap', label = TRUE, label.size = 5, group.by = "SCT_snn_res.0.1", cols = paletteDiscrete(unique(sample$SCT_snn_res.0.1), set = "stallion"))
+```
+
+```{r}
+Idents(sample) <- "SCT_snn_res.0.1"
+DefaultAssay(sample) <- 'SCT'
+rna.markers <- FindAllMarkers(sample, only.pos = TRUE, min.pct = 0.1, logfc.threshold = 0.25)
+write.csv(rna.markers, file ="./SCT_snn_res.0.1_DE.csv", quote = FALSE)
+```
+
+```{r}
+fun <- function(x) {
+  if (x == "0") {"Fibroblast"} 
+  else if (x == "1") {"Endothelium"}
+  else if (x == "2") {"Myeloid"}
+  else if (x == "3") {"SMCPericyte"}
+  else if (x == "4") {"Endocardium"}
+  else if (x == "5") {"Lymphatic"}
+  else if (x == "6") {"Epicardium"}
+  else if (x == "7") {"TNKCells"}
+  else if (x == "8") {"Fibroblast"}
+  else if (x == "9") {"Glia"}
+  else if (x == "10") {"BCells"}                                                                                        
+}
+sample$cell.type <- mapply(fun, sample$SCT_snn_res.0.1)
+```
+
+```{r}
+sample$cell.type <- factor(sample$cell.type, levels = c("Fibroblast","Endocardium","Endothelium","Epicardium","SMCPericyte","Myeloid","TNKCells","BCells","Glia","Lymphatic"))
+```
+
+```{r}
+DimPlot(sample, reduction = 'umap', label = FALSE, label.size = 5, group.by = "cell.type", cols = paletteDiscrete(unique(sample$cell.type), set = "stallion"))
+```
+
+```{r}
+DefaultAssay(sample) <- "RNA"
+sample <- NormalizeData(sample)
+sample <- FindVariableFeatures(sample, selection.method = "vst", nfeatures = 3000)
+sample <- ScaleData(sample)
+```
+
+```{r}
+saveRDS(sample, "annotated_RNA.rds")
+```
+
+```{r}
+sample <- readRDS("./postClean/annotated_RNA.rds")
+```
+
+```{r}
+FeaturePlot(sample, features = "Svep1", split.by = "condition")
+```
+
+
+
+
+
+
+
+
+

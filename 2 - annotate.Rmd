@@ -1,0 +1,582 @@
+```{r}
+library(dplyr)
+library(Seurat)
+library(patchwork)
+library(SeuratDisk)
+library(sctransform)
+library(ggplot2)
+library(harmony)
+library(ArchR)
+library(ggsci)
+```
+
+```{r}
+lvad <- readRDS("./clustered_postContamination.rds")
+```
+
+```{r}
+DimPlot(lvad, reduction = 'umap', group.by = 'SCT_snn_res.0.2',label.size = 4, label=TRUE)
+DimPlot(lvad, reduction = 'umap', group.by = 'cell.type',label.size = 3, label=TRUE)
+```
+
+```{r}
+DefaultAssay(lvad) <- 'SCT'
+Idents(lvad) <- "SCT_snn_res.0.2"
+rna.rnamarkers <- FindAllMarkers(lvad, only.pos = TRUE, min.pct = 0.1, logfc.threshold = 0.25)
+write.csv(rna.rnamarkers, file ="./DE_SCT_sct_snn_res.0.2.csv", quote = FALSE)
+```
+
+# Anntotate the Global Clusters
+```{r}
+fun <- function(x) {
+  if (x == "0") {"Fibroblast"} 
+  else if (x == "1") {"Endothelium"}
+  else if (x == "2") {"Cardiomyocyte"}
+  else if (x == "3") {"Myeloid"}
+  else if (x == "4") {"Pericyte"}
+  else if (x == "5") {"Endocardium"}
+  else if (x == "6") {"SMC"}
+  else if (x == "7") {"TNKCells"}
+  else if (x == "8") {"Lymphatic"}
+  else if (x == "9") {"Myeloid"}
+  else if (x == "10") {"Glia"}
+  else if (x == "11") {"Endothelium"}
+  else if (x == "12") {"Endothelium"}
+  else if (x == "13") {"Myeloid"}
+  else if (x == "14") {"Cardiomyocyte"}
+  else if (x == "15") {"Mast"}
+  else if (x == "16") {"Fibroblast"}
+  else if (x == "17") {"Epicardium"}
+  else if (x == "18") {"Adipocyte"}
+  else if (x == "19") {"Pericyte"}
+}
+lvad$cell.type <- mapply(fun, lvad$SCT_snn_res.0.2)
+```
+
+```{r}
+Idents(lvad) <- "cell.type"
+lvad$cell.type <- factor(lvad$cell.type, levels = c("Cardiomyocyte", "Endocardium", "Endothelium", "Epicardium", "Fibroblast", "Glia", "Adipocyte", "Lymphatic", "Mast", "Myeloid", "Pericyte", "SMC", "TNKCells"), ordered = TRUE)
+```
+
+```{r}
+DimPlot(lvad, reduction = 'umap', group.by = 'cell.type',label.size = 4,
+        cols = paletteDiscrete(unique(lvad$cell.type), set = "stallion"),label = FALSE)
+```
+
+# Try new UMAP
+```{r}
+lvad <- RunUMAP(lvad, reduction = "pca", dims = 1:80, reduction.name = "pca.umap", reduction.key = 'pcaUMAP_')
+```
+
+```{r}
+DimPlot(lvad, reduction = 'pca_umap', group.by = 'cell.type',label.size = 4,
+        cols = paletteDiscrete(unique(lvad$cell.type), set = "stallion"),label = FALSE)
+```
+
+```{r}
+DimPlot(lvad, reduction = 'pca_umap', group.by = 'cell.type',label.size = 4,
+        cols = paletteDiscrete(unique(lvad$cell.type), set = "stallion"),label = FALSE, split.by = "condition")
+```
+
+
+```{r}
+DimPlot(lvad, reduction = 'umap', group.by = 'cell.type',label.size = 4,
+        cols = paletteDiscrete(unique(lvad$cell.type), set = "stallion"),label = FALSE) + NoLegend()
+```
+
+```{r}
+genes <- c("MYOM2", "LEPR","VWF", "HAS1", "DCN", "NRXN1", "PLIN1", "CCL21", "KIT", "F13A1", "RGS5", "MYH11", "IL7R")
+VlnPlot(lvad, features = genes, cols = as.vector(paletteDiscrete(unique(lvad$cell.type), set = "stallion")), stack = TRUE, group.by = "cell.type") + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) + NoLegend()
+```
+
+```{r}
+Idents(lvad) <- "condition"
+levels(lvad)
+```
+
+```{r}
+Donor <- subset(lvad, idents = "Donor")
+Rpre <- subset(lvad, idents = "Rpre")
+Rpost <- subset(lvad, idents = "Rpost")
+NRpre <- subset(lvad, idents = "NRpre")
+NRpost <- subset(lvad, idents = "NRpost")
+```
+
+```{r}
+paletteDiscrete(unique(lvad$cell.type), set = "stallion")
+```
+
+```{r}
+DimPlot(Donor, reduction = 'umap', group.by = 'condition',label.size = 4,cols = c("#D51F26"), label = FALSE, pt.size = 0.001)
+
+DimPlot(Rpre, reduction = 'umap', group.by = 'condition',label.size = 4,cols = c("#272E6A"), label = FALSE, pt.size = 0.001)
+
+DimPlot(Rpost, reduction = 'umap', group.by = 'condition',label.size = 4,cols = c("#208A42"), label = FALSE, pt.size = 0.001)
+
+DimPlot(NRpre, reduction = 'umap', group.by = 'condition',label.size = 4,cols = c("#89288F"), label = FALSE, pt.size = 0.001)
+
+DimPlot(NRpost, reduction = 'umap', group.by = 'condition',label.size = 4,cols = c("#F47D2B"), label = FALSE, pt.size = 0.001)
+```
+
+```{r}
+Idents(lvad) <- "condition"
+lvad$condition <- factor(lvad$condition, levels = c("Donor", "NRpre", "NRpost", "Rpre", "Rpost"), ordered = TRUE)
+```
+
+```{r}
+ggplot(lvad@meta.data, aes(x=condition, fill=cell.type)) + geom_bar(position = "fill") + theme_linedraw() + theme(axis.text.x = element_text(angle = 90)) +  scale_fill_manual(values=as.vector(paletteDiscrete(unique(lvad$cell.type), set = "stallion"))) + theme(axis.line = element_line(colour = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank()) 
+```
+
+```{r}
+fun <- function(x) {
+  if (x == "Donor") {"Donor"} 
+  else if (x == "NRpre") {"HF"}
+  else if (x == "Rpre") {"HF"}
+  else if (x == "NRpost") {"NRpost"}
+  else if (x == "Rpost") {"Rpost"}
+}
+lvad$condition2 <- mapply(fun, lvad$condition)
+```
+
+
+# Export h5ad file for scanpy processing
+```{r}
+lvad$orig.ident <- as.character(lvad$orig.ident) 
+lvad$cell.type <- as.character(lvad$cell.type) 
+lvad$condition <- as.character(lvad$condition) 
+lvad$condition2 <- as.character(lvad$condition2) 
+```
+
+```{r}
+SaveH5Seurat(lvad, filename = "./harmony_annotated.h5Seurat")
+```
+
+```{r}
+Convert("./harmony_annotated.h5Seurat", dest = "h5ad")
+```
+
+```{r}
+saveRDS(lvad, "./harmony_annotated.rds")
+```
+
+```{r}
+lvad <- readRDS("./harmony_annotated.rds")
+```
+
+```{r}
+VlnPlot(lvad, features = "nCount_RNA", cols = as.vector(paletteDiscrete(unique(lvad$condition), set = "stallion")), group.by = "condition", pt.size=0) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) + NoLegend()
+
+VlnPlot(lvad, features = "nFeature_RNA", cols = as.vector(paletteDiscrete(unique(lvad$condition), set = "stallion")), group.by = "condition", pt.size=0) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) + NoLegend()
+
+VlnPlot(lvad, features = "percent.mt", cols = as.vector(paletteDiscrete(unique(lvad$condition), set = "stallion")), group.by = "condition", pt.size=0) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) + NoLegend()
+
+VlnPlot(lvad, features = "scrublet_score", cols = as.vector(paletteDiscrete(unique(lvad$condition), set = "stallion")), group.by = "condition", pt.size=0) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) + NoLegend()
+```
+
+```{r}
+VlnPlot(lvad, features = "nCount_RNA", cols = as.vector(paletteDiscrete(unique(lvad$cell.type), set = "stallion")), group.by = "cell.type", pt.size=0) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) + NoLegend()
+
+VlnPlot(lvad, features = "nFeature_RNA", cols = as.vector(paletteDiscrete(unique(lvad$cell.type), set = "stallion")), group.by = "cell.type", pt.size=0) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) + NoLegend()
+
+VlnPlot(lvad, features = "percent.mt", cols = as.vector(paletteDiscrete(unique(lvad$cell.type), set = "stallion")), group.by = "cell.type", pt.size=0) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) + NoLegend()
+
+VlnPlot(lvad, features = "scrublet_score", cols = as.vector(paletteDiscrete(unique(lvad$cell.type), set = "stallion")), group.by = "cell.type", pt.size=0) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black")) + NoLegend()
+```
+```{r}
+DefaultAssay(lvad) <- 'SCT'
+Idents(lvad) <- "cell.type"
+rna.rnamarkers <- FindAllMarkers(lvad, only.pos = TRUE, min.pct = 0.1, logfc.threshold = 0.25)
+write.csv(rna.rnamarkers, file ="./DE_cell.type.csv", quote = FALSE)
+```
+
+```{r}
+rna.rnamarkers %>%
+    group_by(cluster) %>%
+    top_n(n = 10, wt = avg_log2FC) -> top10
+```
+
+```{r}
+DefaultAssay(lvad) <- 'SCT'
+Idents(lvad) <- "cell.type"
+DoHeatmap(lvad, features = top10$gene, assay = "SCT", group.colors = as.vector(paletteDiscrete(unique(lvad$cell.type), set = "stallion")), size = 2, angle = 90) + NoLegend() + scale_fill_gradientn(colours=paletteContinuous("solarExtra"))
+
+ggsave(filename="heatmap_GEX.png")
+```
+
+```{r}
+ggplot(lvad@meta.data, aes(x=orig.ident, fill=cell.type)) + geom_bar(position = "fill") + theme_linedraw() + theme(axis.text.x = element_text(angle = 90)) +  scale_fill_manual(values=as.vector(paletteDiscrete(unique(lvad$cell.type), set = "stallion"))) + theme(axis.line = element_line(colour = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank())
+```
+### Calculate z-scores
+
+# Cardiomyocyte
+```{r}
+DefaultAssay(lvad) <- "SCT"
+expdata <- GetAssayData(lvad)
+Pop1 <- c("RYR2","FGF12","MYBPC3","TNNT2")
+pops<-list(Pop1)
+#Z-Scores
+z_scores<-NULL
+
+for (i in 1:length(pops)) {
+genes <- pops[[i]]
+zz <- which(tolower(rownames(expdata)) %in% tolower(genes))
+av <- numeric(ncol(expdata))
+
+geneExp <- as.matrix(expdata[zz, ])
+geneExp <- t(scale(t(geneExp)))
+geneExp[is.nan(geneExp)] <- 0
+z_scores <- rbind(z_scores,(av + colSums(geneExp) / length(zz)))
+}
+lvad@meta.data$Cardiomyocyte_z<-z_scores[1,]
+FeaturePlot(object=lvad, features = "Cardiomyocyte_z",reduction = 'umap') + scale_color_gradientn(colors=paletteContinuous("solarExtra"), oob=scales::squish, limits=c(0,1))
+```
+# Endocardium
+```{r}
+DefaultAssay(lvad) <- "SCT"
+expdata <- GetAssayData(lvad)
+Pop1 <- c("NRG1","NRG3","PCDH15","CDH11","LEPR","PKHD1L1","MYRIP")
+pops<-list(Pop1)
+#Z-Scores
+z_scores<-NULL
+
+for (i in 1:length(pops)) {
+genes <- pops[[i]]
+zz <- which(tolower(rownames(expdata)) %in% tolower(genes))
+av <- numeric(ncol(expdata))
+
+geneExp <- as.matrix(expdata[zz, ])
+geneExp <- t(scale(t(geneExp)))
+geneExp[is.nan(geneExp)] <- 0
+z_scores <- rbind(z_scores,(av + colSums(geneExp) / length(zz)))
+}
+lvad@meta.data$Endocardium_z<-z_scores[1,]
+FeaturePlot(object=lvad, features = "Endocardium_z",reduction = 'umap') + scale_color_gradientn(colors=paletteContinuous("solarExtra"), oob=scales::squish, limits=c(0,1))
+```
+
+# Endothelium
+```{r}
+DefaultAssay(lvad) <- "SCT"
+expdata <- GetAssayData(lvad)
+Pop1 <- c("VWF","FLT1","EGFL7","PECAM1")
+pops<-list(Pop1)
+#Z-Scores
+z_scores<-NULL
+
+for (i in 1:length(pops)) {
+genes <- pops[[i]]
+zz <- which(tolower(rownames(expdata)) %in% tolower(genes))
+av <- numeric(ncol(expdata))
+
+geneExp <- as.matrix(expdata[zz, ])
+geneExp <- t(scale(t(geneExp)))
+geneExp[is.nan(geneExp)] <- 0
+z_scores <- rbind(z_scores,(av + colSums(geneExp) / length(zz)))
+}
+lvad@meta.data$Endothelium_z<-z_scores[1,]
+FeaturePlot(object=lvad, features = "Endothelium_z",reduction = 'umap') + scale_color_gradientn(colors=paletteContinuous("solarExtra"), oob=scales::squish, limits=c(0,1))
+```
+# Epicardium
+```{r}
+DefaultAssay(lvad) <- "SCT"
+expdata <- GetAssayData(lvad)
+Pop1 <- c("WWC1","HAS1","TWIST2")
+pops<-list(Pop1)
+#Z-Scores
+z_scores<-NULL
+
+for (i in 1:length(pops)) {
+genes <- pops[[i]]
+zz <- which(tolower(rownames(expdata)) %in% tolower(genes))
+av <- numeric(ncol(expdata))
+
+geneExp <- as.matrix(expdata[zz, ])
+geneExp <- t(scale(t(geneExp)))
+geneExp[is.nan(geneExp)] <- 0
+z_scores <- rbind(z_scores,(av + colSums(geneExp) / length(zz)))
+}
+lvad@meta.data$Epicardium_z<-z_scores[1,]
+FeaturePlot(object=lvad, features = "Epicardium_z",reduction = 'umap') + scale_color_gradientn(colors=paletteContinuous("solarExtra"), oob=scales::squish, limits=c(0,1))
+```
+# Fibroblast
+```{r}
+DefaultAssay(lvad) <- "SCT"
+expdata <- GetAssayData(lvad)
+Pop1 <- c("DCN","LUM","CCDC80","FN1","NEGR1","ABCA8","CDH19")
+pops<-list(Pop1)
+#Z-Scores
+z_scores<-NULL
+
+for (i in 1:length(pops)) {
+genes <- pops[[i]]
+zz <- which(tolower(rownames(expdata)) %in% tolower(genes))
+av <- numeric(ncol(expdata))
+
+geneExp <- as.matrix(expdata[zz, ])
+geneExp <- t(scale(t(geneExp)))
+geneExp[is.nan(geneExp)] <- 0
+z_scores <- rbind(z_scores,(av + colSums(geneExp) / length(zz)))
+}
+lvad@meta.data$Fibroblast_z<-z_scores[1,]
+FeaturePlot(object=lvad, features = "Fibroblast_z",reduction = 'umap') + scale_color_gradientn(colors=paletteContinuous("solarExtra"), oob=scales::squish, limits=c(0,1))
+```
+
+# Glia
+```{r}
+DefaultAssay(lvad) <- "SCT"
+expdata <- GetAssayData(lvad)
+Pop1 <- c("NRXN1","S100B","MPZ","NCAM1")
+pops<-list(Pop1)
+#Z-Scores
+z_scores<-NULL
+
+for (i in 1:length(pops)) {
+genes <- pops[[i]]
+zz <- which(tolower(rownames(expdata)) %in% tolower(genes))
+av <- numeric(ncol(expdata))
+
+geneExp <- as.matrix(expdata[zz, ])
+geneExp <- t(scale(t(geneExp)))
+geneExp[is.nan(geneExp)] <- 0
+z_scores <- rbind(z_scores,(av + colSums(geneExp) / length(zz)))
+}
+lvad@meta.data$Glia_z<-z_scores[1,]
+FeaturePlot(object=lvad, features = "Glia_z",reduction = 'umap') + scale_color_gradientn(colors=paletteContinuous("solarExtra"), oob=scales::squish, limits=c(0,1))
+```
+# Adipocyte
+```{r}
+DefaultAssay(lvad) <- "SCT"
+expdata <- GetAssayData(lvad)
+Pop1 <- c("PLIN1","DGAT2","GPD1")
+pops<-list(Pop1)
+#Z-Scores
+z_scores<-NULL
+
+for (i in 1:length(pops)) {
+genes <- pops[[i]]
+zz <- which(tolower(rownames(expdata)) %in% tolower(genes))
+av <- numeric(ncol(expdata))
+
+geneExp <- as.matrix(expdata[zz, ])
+geneExp <- t(scale(t(geneExp)))
+geneExp[is.nan(geneExp)] <- 0
+z_scores <- rbind(z_scores,(av + colSums(geneExp) / length(zz)))
+}
+lvad@meta.data$Adipocyte_z<-z_scores[1,]
+FeaturePlot(object=lvad, features = "Adipocyte_z",reduction = 'umap') + scale_color_gradientn(colors=paletteContinuous("solarExtra"), oob=scales::squish, limits=c(0,1))
+```
+# Lymphatics
+```{r}
+DefaultAssay(lvad) <- "SCT"
+expdata <- GetAssayData(lvad)
+Pop1 <- c("CCL21","PROX1","LYVE1","FLT4","PDPN")
+pops<-list(Pop1)
+#Z-Scores
+z_scores<-NULL
+
+for (i in 1:length(pops)) {
+genes <- pops[[i]]
+zz <- which(tolower(rownames(expdata)) %in% tolower(genes))
+av <- numeric(ncol(expdata))
+
+geneExp <- as.matrix(expdata[zz, ])
+geneExp <- t(scale(t(geneExp)))
+geneExp[is.nan(geneExp)] <- 0
+z_scores <- rbind(z_scores,(av + colSums(geneExp) / length(zz)))
+}
+lvad@meta.data$Lymphatics_z<-z_scores[1,]
+FeaturePlot(object=lvad, features = "Lymphatics_z",reduction = 'umap') + scale_color_gradientn(colors=paletteContinuous("solarExtra"), oob=scales::squish, limits=c(0,1))
+```
+
+# Mast
+```{r}
+DefaultAssay(lvad) <- "SCT"
+expdata <- GetAssayData(lvad)
+Pop1 <- c("KIT","CPA3","GATA2","IL18R","FER")
+pops<-list(Pop1)
+#Z-Scores
+z_scores<-NULL
+
+for (i in 1:length(pops)) {
+genes <- pops[[i]]
+zz <- which(tolower(rownames(expdata)) %in% tolower(genes))
+av <- numeric(ncol(expdata))
+
+geneExp <- as.matrix(expdata[zz, ])
+geneExp <- t(scale(t(geneExp)))
+geneExp[is.nan(geneExp)] <- 0
+z_scores <- rbind(z_scores,(av + colSums(geneExp) / length(zz)))
+}
+lvad@meta.data$Mast_z<-z_scores[1,]
+FeaturePlot(object=lvad, features = "Mast_z",reduction = 'umap') + scale_color_gradientn(colors=paletteContinuous("solarExtra"), oob=scales::squish, limits=c(0,1))
+```
+# Myeloid
+```{r}
+DefaultAssay(lvad) <- "SCT"
+expdata <- GetAssayData(lvad)
+Pop1 <- c("CSF1R","CD14","C1QC","MERTK","FCN","CD1C","F13A1","MRC1")
+pops<-list(Pop1)
+#Z-Scores
+z_scores<-NULL
+
+for (i in 1:length(pops)) {
+genes <- pops[[i]]
+zz <- which(tolower(rownames(expdata)) %in% tolower(genes))
+av <- numeric(ncol(expdata))
+
+geneExp <- as.matrix(expdata[zz, ])
+geneExp <- t(scale(t(geneExp)))
+geneExp[is.nan(geneExp)] <- 0
+z_scores <- rbind(z_scores,(av + colSums(geneExp) / length(zz)))
+}
+lvad@meta.data$Myeloid_z<-z_scores[1,]
+FeaturePlot(object=lvad, features = "Myeloid_z",reduction = 'umap') + scale_color_gradientn(colors=paletteContinuous("solarExtra"), oob=scales::squish, limits=c(0,1))
+```
+
+
+# Pericytes
+```{r}
+DefaultAssay(lvad) <- "SCT"
+expdata <- GetAssayData(lvad)
+Pop1 <- c("RGS5","AGT","KCNJ8","PDGFRB","NOTCH3","DLC1","ABCC9")
+pops<-list(Pop1)
+#Z-Scores
+z_scores<-NULL
+
+for (i in 1:length(pops)) {
+genes <- pops[[i]]
+zz <- which(tolower(rownames(expdata)) %in% tolower(genes))
+av <- numeric(ncol(expdata))
+
+geneExp <- as.matrix(expdata[zz, ])
+geneExp <- t(scale(t(geneExp)))
+geneExp[is.nan(geneExp)] <- 0
+z_scores <- rbind(z_scores,(av + colSums(geneExp) / length(zz)))
+}
+lvad@meta.data$Pericyte_z<-z_scores[1,]
+FeaturePlot(object=lvad, features = "Pericyte_z",reduction = 'umap') + scale_color_gradientn(colors=paletteContinuous("solarExtra"), oob=scales::squish, limits=c(0,1))
+```
+
+# SMC
+```{r}
+DefaultAssay(lvad) <- "SCT"
+expdata <- GetAssayData(lvad)
+Pop1 <- c("MYH11","MYL9","CASQ2")
+pops<-list(Pop1)
+#Z-Scores
+z_scores<-NULL
+
+for (i in 1:length(pops)) {
+genes <- pops[[i]]
+zz <- which(tolower(rownames(expdata)) %in% tolower(genes))
+av <- numeric(ncol(expdata))
+
+geneExp <- as.matrix(expdata[zz, ])
+geneExp <- t(scale(t(geneExp)))
+geneExp[is.nan(geneExp)] <- 0
+z_scores <- rbind(z_scores,(av + colSums(geneExp) / length(zz)))
+}
+lvad@meta.data$SMC_z<-z_scores[1,]
+FeaturePlot(object=lvad, features = "SMC_z",reduction = 'umap') + scale_color_gradientn(colors=paletteContinuous("solarExtra"), oob=scales::squish, limits=c(0,1))
+```
+
+# TNK
+```{r}
+DefaultAssay(lvad) <- "SCT"
+expdata <- GetAssayData(lvad)
+Pop1 <- c("NKG7","KLRD1","GZMB","IL2RB","CD3E","CD2","ITK","LTB")
+pops<-list(Pop1)
+#Z-Scores
+z_scores<-NULL
+
+for (i in 1:length(pops)) {
+genes <- pops[[i]]
+zz <- which(tolower(rownames(expdata)) %in% tolower(genes))
+av <- numeric(ncol(expdata))
+
+geneExp <- as.matrix(expdata[zz, ])
+geneExp <- t(scale(t(geneExp)))
+geneExp[is.nan(geneExp)] <- 0
+z_scores <- rbind(z_scores,(av + colSums(geneExp) / length(zz)))
+}
+lvad@meta.data$TNK_z<-z_scores[1,]
+FeaturePlot(object=lvad, features = "TNK_z",reduction = 'umap') + scale_color_gradientn(colors=paletteContinuous("solarExtra"), oob=scales::squish, limits=c(0,1))
+```
+
+```{r}
+lvad@meta.data
+```
+
+```{r}
+DotPlot(lvad, features = c("Cardiomyocyte_z","Endocardium_z","Endothelium_z","Epicardium_z","Fibroblast_z","Glia_z","Adipocyte_z","Lymphatics_z","Mast_z","Myeloid_z", "Pericyte_z", "SMC_z", "TNK_z"), group.by = "cell.type") + RotatedAxis()
+```
+
+```{r}
+fun <- function(x) {
+  if (x == "Donor") {"Donor"} 
+  else if (x == "NRpre") {"HF"}
+  else if (x == "Rpre") {"HF"}
+  else if (x == "NRpost") {"NRpost"}
+  else if (x == "Rpost") {"Rpost"}
+}
+lvad$condition2 <- mapply(fun, lvad$condition)
+```
+
+```{r}
+Idents(lvad) <- "condition2"
+lvad2 <- subset(lvad, idents = c("Donor", "HF"))
+```
+
+```{r}
+FeaturePlot(object=lvad2, features = "AEBP1",reduction = 'umap') + scale_color_gradientn(colors=paletteContinuous("solarExtra"), oob=scales::squish, limits=c(0,1))
+```
+```{r}
+FeaturePlot(object=lvad2, features = "AEBP1",reduction = 'umap', split.by = "condition2")
+```
+
+```{r}
+VlnPlot(lvad2, features = "AEBP1",group.by = "cell.type", split.by = "condition2", split.plot = TRUE, pt.size=0)
+```
+```{r}
+DotPlot(lvad2, features = "AEBP1", group.by = "cell.type", split.by = "condition2") + RotatedAxis()
+```
+
+```{r}
+DotPlot(lvad2, features = c("SLC16A1", "SLC16A4", "SMPD1", "SPHK1", "SPHK2", "DEGS1", "UGCG", "ASAH1", "ASAH2", "S1PR3"), group.by = "cell.type", col.min = 0) + RotatedAxis()
+```
+
+```{r}
+VlnPlot(lvad2, features = c("SLC16A1", "SLC16A4", "SMPD1", "SPHK1", "SPHK2", "DEGS1", "UGCG", "ASAH1", "ASAH2", "S1PR3"), group.by = "cell.type", split.by = "condition2", stack = TRUE) + RotatedAxis()
+```
+
+```{r}
+FeaturePlot(lvad, features = "RUNX1")
+```
+
+```{r}
+VlnPlot(lvad, features = "RUNX1", group.by = "cell.type")
+```
+
+
+
+
+
+
+
+
+
+
